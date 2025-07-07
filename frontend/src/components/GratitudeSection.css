@@ -1,0 +1,80 @@
+.gratitude-section {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(255, 140, 200, 0.1));
+  padding: 2rem;
+  border-radius: 15px;
+  border: 2px solid rgba(255, 107, 157, 0.2);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #ff6b9d;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #ff6b9d;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.question-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.question-label {
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.answer-input {
+  padding: 0.8rem;
+  border: 2px solid rgba(255, 107, 157, 0.3);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.8);
+  resize: vertical;
+  min-height: 60px;
+}
+
+.answer-input:focus {
+  outline: none;
+  border-color: #ff6b9d;
+  box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+}
+
+.answer-input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .gratitude-section {
+    padding: 1.5rem;
+  }
+  
+  .section-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .question-label {
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,158 @@
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from datetime import datetime, date
+from typing import List, Optional
+import uvicorn
+import random
+
+from database import SessionLocal, engine, Base
+from models import JournalEntry, GratitudeQuestion, EmotionQuestion, Quote
+from schemas import JournalEntryCreate, JournalEntryResponse, EmotionQuestionResponse
+from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Carolina's Diary", description="A personalized journaling app")
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Dependency to get database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Initialize database with questions and quotes
+@app.on_event("startup")
+async def startup_event():
+    db = SessionLocal()
+    try:
+        # Check if data already exists
+        if db.query(GratitudeQuestion).count() == 0:
+            # Add gratitude questions
+            for question in GRATITUDE_QUESTIONS:
+                db_question = GratitudeQuestion(question=question)
+                db.add(db_question)
+        
+        if db.query(EmotionQuestion).count() == 0:
+            # Add emotion questions
+            for emotion, questions in EMOTION_QUESTIONS.items():
+                for question in questions:
+                    db_question = EmotionQuestion(emotion=emotion, question=question)
+                    db.add(db_question)
+        
+        if db.query(Quote).count() == 0:
+            # Add quotes
+            for emotion, quotes in QUOTES_DATA.items():
+                for quote_data in quotes:
+                    db_quote = Quote(
+                        emotion=emotion,
+                        quote=quote_data["quote"],
+                        author=quote_data["author"]
+                    )
+                    db.add(db_quote)
+        
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error initializing database: {e}")
+    finally:
+        db.close()
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Carolina's Diary"}
+
+@app.get("/gratitude-questions")
+async def get_gratitude_questions(db: Session = Depends(get_db)):
+    """Get 5 random gratitude questions for today"""
+    questions = db.query(GratitudeQuestion).all()
+    if len(questions) < 5:
+        return [q.question for q in questions]
+    return [q.question for q in random.sample(questions, 5)]
+
+@app.get("/emotion-questions/{emotion}")
+async def get_emotion_questions(emotion: str, db: Session = Depends(get_db)):
+    """Get questions for a specific emotion"""
+    questions = db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion).all()
+    return [EmotionQuestionResponse(id=q.id, question=q.question) for q in questions]
+
+@app.get("/quote/{emotion}")
+async def get_quote_for_emotion(emotion: str, db: Session = Depends(get_db)):
+    """Get a random quote for a specific emotion"""
+    quotes = db.query(Quote).filter(Quote.emotion == emotion).all()
+    if not quotes:
+        return {"quote": "Every day is a new beginning.", "author": "Unknown"}
+    selected_quote = random.choice(quotes)
+    return {"quote": selected_quote.quote, "author": selected_quote.author}
+
+@app.post("/journal-entry", response_model=JournalEntryResponse)
+async def create_journal_entry(entry: JournalEntryCreate, db: Session = Depends(get_db)):
+    """Create or update a journal entry for today"""
+    today = date.today()
+    
+    # Check if entry exists for today
+    existing_entry = db.query(JournalEntry).filter(JournalEntry.date == today).first()
+    
+    if existing_entry:
+        # Update existing entry
+        existing_entry.gratitude_answers = entry.gratitude_answers
+        existing_entry.emotion = entry.emotion
+        existing_entry.emotion_answers = entry.emotion_answers
+        existing_entry.custom_text = entry.custom_text
+        existing_entry.visual_settings = entry.visual_settings
+        existing_entry.updated_at = datetime.now()
+        db.commit()
+        db.refresh(existing_entry)
+        return existing_entry
+    else:
+        # Create new entry
+        db_entry = JournalEntry(
+            date=today,
+            gratitude_answers=entry.gratitude_answers,
+            emotion=entry.emotion,
+            emotion_answers=entry.emotion_answers,
+            custom_text=entry.custom_text,
+            visual_settings=entry.visual_settings
+        )
+        db.add(db_entry)
+        db.commit()
+        db.refresh(db_entry)
+        return db_entry
+
+@app.get("/journal-entry/{entry_date}", response_model=JournalEntryResponse)
+async def get_journal_entry(entry_date: str, db: Session = Depends(get_db)):
+    """Get journal entry for a specific date"""
+    try:
+        entry_date_obj = datetime.strptime(entry_date, "%Y-%m-%d").date()
+        entry = db.query(JournalEntry).filter(JournalEntry.date == entry_date_obj).first()
+        if not entry:
+            raise HTTPException(status_code=404, detail="Journal entry not found")
+        return entry
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+@app.get("/journal-entries", response_model=List[JournalEntryResponse])
+async def get_all_journal_entries(db: Session = Depends(get_db)):
+    """Get all journal entries"""
+    entries = db.query(JournalEntry).order_by(JournalEntry.date.desc()).all()
+    return entries
+
+@app.get("/emotions")
+async def get_available_emotions():
+    """Get list of available emotions"""
+    return list(EMOTION_QUESTIONS.keys())
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,0 +1,172 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Brain, Quote } from 'lucide-react';
+import './EmotionSection.css';
+
+interface EmotionSectionProps {
+  selectedEmotion?: string;
+  emotionAnswers: string[];
+  onUpdateEmotion: (emotion: string) => void;
+  onUpdateAnswers: (answers: string[]) => void;
+}
+
+interface EmotionQuestion {
+  id: number;
+  question: string;
+}
+
+interface QuoteData {
+  quote: string;
+  author: string;
+}
+
+const EmotionSection: React.FC<EmotionSectionProps> = ({
+  selectedEmotion,
+  emotionAnswers,
+  onUpdateEmotion,
+  onUpdateAnswers
+}) => {
+  const [emotions, setEmotions] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<EmotionQuestion[]>([]);
+  const [quote, setQuote] = useState<QuoteData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    loadEmotions();
+  }, []);
+
+  useEffect(() => {
+    if (selectedEmotion) {
+      loadEmotionQuestions();
+      loadQuote();
+    }
+  }, [selectedEmotion]);
+
+  const loadEmotions = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/emotions');
+      setEmotions(response.data);
+    } catch (error) {
+      console.error('Error loading emotions:', error);
+    }
+  };
+
+  const loadEmotionQuestions = async () => {
+    if (!selectedEmotion) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8000/emotion-questions/${selectedEmotion}`);
+      setQuestions(response.data);
+    } catch (error) {
+      console.error('Error loading emotion questions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadQuote = async () => {
+    if (!selectedEmotion) return;
+    
+    try {
+      const response = await axios.get(`http://localhost:8000/quote/${selectedEmotion}`);
+      setQuote(response.data);
+    } catch (error) {
+      console.error('Error loading quote:', error);
+    }
+  };
+
+  const handleEmotionSelect = (emotion: string) => {
+    onUpdateEmotion(emotion);
+    onUpdateAnswers([]);
+  };
+
+  const handleAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...emotionAnswers];
+    newAnswers[index] = value;
+    onUpdateAnswers(newAnswers);
+  };
+
+  const getEmotionColor = (emotion: string) => {
+    const colorMap: { [key: string]: string } = {
+      'anxiety': '#ff6b6b',
+      'sadness': '#4ecdc4',
+      'stress': '#ff9f43',
+      'excitement': '#feca57',
+      'anger': '#ff3838',
+      'happiness': '#2ed573',
+      'joy': '#ffa502',
+      'feeling overwhelmed': '#ff6b9d',
+      'jealousy': '#a55eea',
+      'fatigue': '#778ca3',
+      'insecurity': '#f8b500',
+      'doubt': '#8395a7',
+      'catastrophic thinking': '#ff6b6b'
+    };
+    return colorMap[emotion] || '#ff6b9d';
+  };
+
+  return (
+    <div className="emotion-section">
+      <div className="section-header">
+        <Brain className="section-icon" />
+        <h3>How Are You Feeling Today?</h3>
+      </div>
+
+      <div className="emotions-grid">
+        {emotions.map((emotion) => (
+          <button
+            key={emotion}
+            className={`emotion-button ${selectedEmotion === emotion ? 'selected' : ''}`}
+            style={{
+              backgroundColor: selectedEmotion === emotion ? getEmotionColor(emotion) : 'transparent',
+              borderColor: getEmotionColor(emotion),
+              color: selectedEmotion === emotion ? 'white' : getEmotionColor(emotion)
+            }}
+            onClick={() => handleEmotionSelect(emotion)}
+          >
+            {emotion}
+          </button>
+        ))}
+      </div>
+
+      {selectedEmotion && (
+        <div className="emotion-content">
+          {quote && (
+            <div className="quote-section">
+              <Quote className="quote-icon" />
+              <blockquote className="quote">
+                <p>"{quote.quote}"</p>
+                <cite>— {quote.author}</cite>
+              </blockquote>
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="loading">Loading questions...</div>
+          ) : (
+            <div className="emotion-questions">
+              <h4>Reflection Questions about {selectedEmotion}</h4>
+              {questions.map((question, index) => (
+                <div key={question.id} className="question-item">
+                  <label className="question-label">
+                    {question.question}
+                  </label>
+                  <textarea
+                    className="answer-input"
+                    value={emotionAnswers[index] || ''}
+                    onChange={(e) => handleAnswerChange(index, e.target.value)}
+                    placeholder="Take your time to reflect and write your thoughts..."
+                    rows={3}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EmotionSection;
