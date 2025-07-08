@@ -22,6 +22,7 @@ const GratitudeSection: React.FC<GratitudeSectionProps> = ({ answers, onUpdateAn
       setQuestions(response || []);
     } catch (error) {
       console.error('Error loading gratitude questions:', error);
+      // Fallback questions when backend is not available
       setQuestions([
         'What made you smile today?',
         'Who are you grateful for and why?',

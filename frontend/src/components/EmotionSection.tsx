@@ -48,6 +48,19 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       setEmotions(response || []);
     } catch (error) {
       console.error('Error loading emotions:', error);
+      // Fallback emotions when backend is not available
+      setEmotions([
+        'happiness',
+        'sadness', 
+        'anxiety',
+        'excitement',
+        'stress',
+        'anger',
+        'joy',
+        'feeling overwhelmed',
+        'fatigue',
+        'insecurity'
+      ]);
     }
   };
 
@@ -60,6 +73,12 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       setQuestions(response || []);
     } catch (error) {
       console.error('Error loading emotion questions:', error);
+      // Fallback questions when backend is not available
+      setQuestions([
+        { id: 1, question: `What triggered your ${selectedEmotion} today?` },
+        { id: 2, question: `How did this ${selectedEmotion} affect your day?` },
+        { id: 3, question: `What would help you feel better right now?` }
+      ]);
     } finally {
       setIsLoading(false);
     }
