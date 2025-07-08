@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiService, VisualSettings } from '../services/api';
 import GratitudeSection from './GratitudeSection';
 import EmotionSection from './EmotionSection';
 import CustomizationPanel from './CustomizationPanel';
@@ -11,21 +11,15 @@ interface JournalEntryProps {
 
 interface JournalData {
   id?: number;
+  user_id?: number;
+  date?: string;
   gratitude_answers: string[];
-  emotion?: string;
+  emotion?: string | null;
   emotion_answers: string[];
-  custom_text?: string;
-  visual_settings: {
-    backgroundColor: string;
-    textColor: string;
-    fontFamily: string;
-    fontSize: string;
-    stickers: Array<{
-      id: string;
-      type: string;
-      position: { x: number; y: number };
-    }>;
-  };
+  custom_text?: string | null;
+  visual_settings?: VisualSettings | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
@@ -44,25 +38,52 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
   const [showCustomization, setShowCustomization] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [, setIsInitialized] = useState(false);
 
   useEffect(() => {
     loadJournalEntry();
-  }, [date]);
+  }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadJournalEntry = async () => {
     try {
       const dateStr = date.toISOString().split('T')[0];
-      const response = await axios.get(`http://localhost:8000/journal-entry/${dateStr}`);
-      setJournalData(response.data);
+      const response = await apiService.getJournalEntry(dateStr);
+      setJournalData({
+        ...response,
+        gratitude_answers: response.gratitude_answers || ['', '', '', '', ''],
+        emotion_answers: response.emotion_answers || [],
+        visual_settings: response.visual_settings || {
+          backgroundColor: '#ffffff',
+          textColor: '#333333',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '16px',
+          stickers: []
+        }
+      });
     } catch (error) {
       console.log('No existing entry for today, starting fresh');
+    } finally {
+      setIsInitialized(true);
     }
   };
 
   const saveJournalEntry = async () => {
     setIsLoading(true);
     try {
-      await axios.post('http://localhost:8000/journal-entry', journalData);
+      const dataToSave = {
+        ...journalData,
+        date: date.toISOString().split('T')[0],
+        gratitude_answers: journalData.gratitude_answers || ['', '', '', '', ''],
+        emotion_answers: journalData.emotion_answers || [],
+        visual_settings: journalData.visual_settings || {
+          backgroundColor: '#ffffff',
+          textColor: '#333333',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '16px',
+          stickers: []
+        }
+      };
+      await apiService.saveJournalEntry(dataToSave);
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
     } catch (error) {
@@ -76,18 +97,26 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
     setJournalData(prev => ({ ...prev, ...updates }));
   };
 
-  const updateVisualSettings = (settings: Partial<JournalData['visual_settings']>) => {
+  const updateVisualSettings = (settings: Partial<VisualSettings>) => {
     setJournalData(prev => ({
       ...prev,
-      visual_settings: { ...prev.visual_settings, ...settings }
+      visual_settings: { 
+        ...prev.visual_settings, 
+        backgroundColor: '#ffffff',
+        textColor: '#333333',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '16px',
+        stickers: [],
+        ...settings 
+      }
     }));
   };
 
   const journalStyle = {
-    backgroundColor: journalData.visual_settings.backgroundColor,
-    color: journalData.visual_settings.textColor,
-    fontFamily: journalData.visual_settings.fontFamily,
-    fontSize: journalData.visual_settings.fontSize,
+    backgroundColor: journalData.visual_settings?.backgroundColor || '#ffffff',
+    color: journalData.visual_settings?.textColor || '#333333',
+    fontFamily: journalData.visual_settings?.fontFamily || 'Arial, sans-serif',
+    fontSize: journalData.visual_settings?.fontSize || '16px',
   };
 
   return (
@@ -113,20 +142,26 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
 
       {showCustomization && (
         <CustomizationPanel
-          visualSettings={journalData.visual_settings}
+          visualSettings={journalData.visual_settings || {
+            backgroundColor: '#ffffff',
+            textColor: '#333333',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '16px',
+            stickers: []
+          }}
           onUpdateSettings={updateVisualSettings}
         />
       )}
 
       <div className="journal-content">
         <GratitudeSection
-          answers={journalData.gratitude_answers}
+          answers={journalData.gratitude_answers || ['', '', '', '', '']}
           onUpdateAnswers={(answers) => updateJournalData({ gratitude_answers: answers })}
         />
 
         <EmotionSection
-          selectedEmotion={journalData.emotion}
-          emotionAnswers={journalData.emotion_answers}
+          selectedEmotion={journalData.emotion || ''}
+          emotionAnswers={journalData.emotion_answers || []}
           onUpdateEmotion={(emotion) => updateJournalData({ emotion })}
           onUpdateAnswers={(answers) => updateJournalData({ emotion_answers: answers })}
         />
@@ -144,7 +179,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
       </div>
 
       <div className="stickers-container">
-        {journalData.visual_settings.stickers.map((sticker) => (
+        {(journalData.visual_settings?.stickers || []).map((sticker) => (
           <div
             key={sticker.id}
             className="sticker"

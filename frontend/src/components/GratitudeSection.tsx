@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiService } from '../services/api';
 import { Heart } from 'lucide-react';
 import './GratitudeSection.css';
 
@@ -18,8 +18,8 @@ const GratitudeSection: React.FC<GratitudeSectionProps> = ({ answers, onUpdateAn
 
   const loadGratitudeQuestions = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/gratitude-questions');
-      setQuestions(response.data);
+      const response = await apiService.getGratitudeQuestions();
+      setQuestions(response || []);
     } catch (error) {
       console.error('Error loading gratitude questions:', error);
       setQuestions([
@@ -35,7 +35,7 @@ const GratitudeSection: React.FC<GratitudeSectionProps> = ({ answers, onUpdateAn
   };
 
   const handleAnswerChange = (index: number, value: string) => {
-    const newAnswers = [...answers];
+    const newAnswers = [...(answers || ['', '', '', '', ''])];
     newAnswers[index] = value;
     onUpdateAnswers(newAnswers);
   };
@@ -58,14 +58,14 @@ const GratitudeSection: React.FC<GratitudeSectionProps> = ({ answers, onUpdateAn
         <h3>5 Things I'm Grateful For Today</h3>
       </div>
       <div className="questions-container">
-        {questions.map((question, index) => (
+        {(questions || []).map((question, index) => (
           <div key={index} className="question-item">
             <label className="question-label">
               {index + 1}. {question}
             </label>
             <textarea
               className="answer-input"
-              value={answers[index] || ''}
+              value={(answers || [])[index] || ''}
               onChange={(e) => handleAnswerChange(index, e.target.value)}
               placeholder="Write your answer here..."
               rows={2}

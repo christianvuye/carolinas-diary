@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiService } from '../services/api';
 import { Brain, Quote } from 'lucide-react';
 import './EmotionSection.css';
 
@@ -40,12 +40,12 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       loadEmotionQuestions();
       loadQuote();
     }
-  }, [selectedEmotion]);
+  }, [selectedEmotion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEmotions = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/emotions');
-      setEmotions(response.data);
+      const response = await apiService.getEmotions();
+      setEmotions(response || []);
     } catch (error) {
       console.error('Error loading emotions:', error);
     }
@@ -56,8 +56,8 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
     
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8000/emotion-questions/${selectedEmotion}`);
-      setQuestions(response.data);
+      const response = await apiService.getEmotionQuestions(selectedEmotion);
+      setQuestions(response || []);
     } catch (error) {
       console.error('Error loading emotion questions:', error);
     } finally {
@@ -69,8 +69,8 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
     if (!selectedEmotion) return;
     
     try {
-      const response = await axios.get(`http://localhost:8000/quote/${selectedEmotion}`);
-      setQuote(response.data);
+      const response = await apiService.getQuote(selectedEmotion);
+      setQuote(response || null);
     } catch (error) {
       console.error('Error loading quote:', error);
     }
@@ -82,7 +82,7 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
   };
 
   const handleAnswerChange = (index: number, value: string) => {
-    const newAnswers = [...emotionAnswers];
+    const newAnswers = [...(emotionAnswers || [])];
     newAnswers[index] = value;
     onUpdateAnswers(newAnswers);
   };
@@ -114,7 +114,7 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       </div>
 
       <div className="emotions-grid">
-        {emotions.map((emotion) => (
+        {(emotions || []).map((emotion) => (
           <button
             key={emotion}
             className={`emotion-button ${selectedEmotion === emotion ? 'selected' : ''}`}
@@ -147,14 +147,14 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
           ) : (
             <div className="emotion-questions">
               <h4>Reflection Questions about {selectedEmotion}</h4>
-              {questions.map((question, index) => (
+              {(questions || []).map((question, index) => (
                 <div key={question.id} className="question-item">
                   <label className="question-label">
                     {question.question}
                   </label>
                   <textarea
                     className="answer-input"
-                    value={emotionAnswers[index] || ''}
+                    value={(emotionAnswers || [])[index] || ''}
                     onChange={(e) => handleAnswerChange(index, e.target.value)}
                     placeholder="Take your time to reflect and write your thoughts..."
                     rows={3}
