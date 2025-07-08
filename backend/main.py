@@ -7,9 +7,10 @@ import uvicorn
 import random
 
 from database import SessionLocal, engine, Base
-from models import JournalEntry, GratitudeQuestion, EmotionQuestion, Quote
-from schemas import JournalEntryCreate, JournalEntryResponse, EmotionQuestionResponse
+from models import JournalEntry, GratitudeQuestion, EmotionQuestion, Quote, User
+from schemas import JournalEntryCreate, JournalEntryResponse, EmotionQuestionResponse, UserCreate, UserResponse, UserUpdate
 from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
+from auth import get_current_user
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -32,6 +33,14 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Helper function to get user from database
+def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User:
+    """Get user by Firebase UID, create if doesn't exist"""
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found. Please register first.")
+    return user
 
 # Initialize database with questions and quotes
 @app.on_event("startup")
@@ -74,6 +83,66 @@ async def startup_event():
 async def root():
     return {"message": "Welcome to Carolina's Diary"}
 
+# User management endpoints
+@app.post("/users/register", response_model=UserResponse)
+async def register_user(user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Register a new user or return existing user
+    """
+    existing_user = db.query(User).filter(User.firebase_uid == user_data["uid"]).first()
+    
+    if existing_user:
+        return existing_user
+    
+    new_user = User(
+        firebase_uid=user_data["uid"],
+        email=user_data["email"],
+        name=user_data.get("name"),
+        picture=user_data.get("picture"),
+        email_verified=user_data.get("email_verified", False)
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user
+
+@app.get("/users/me", response_model=UserResponse)
+async def get_current_user_info(user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Get current user information
+    """
+    user = db.query(User).filter(User.firebase_uid == user_data["uid"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return user
+
+@app.put("/users/me", response_model=UserResponse)
+async def update_current_user(user_update: UserUpdate, user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Update current user information
+    """
+    user = db.query(User).filter(User.firebase_uid == user_data["uid"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user_update.name is not None:
+        user.name = user_update.name
+    if user_update.picture is not None:
+        user.picture = user_update.picture
+    if user_update.email_verified is not None:
+        user.email_verified = user_update.email_verified
+    if user_update.preferences is not None:
+        user.preferences = user_update.preferences
+    
+    user.updated_at = datetime.now()
+    db.commit()
+    db.refresh(user)
+    
+    return user
+
 @app.get("/gratitude-questions")
 async def get_gratitude_questions(db: Session = Depends(get_db)):
     """Get 5 random gratitude questions for today"""
@@ -98,12 +167,18 @@ async def get_quote_for_emotion(emotion: str, db: Session = Depends(get_db)):
     return {"quote": selected_quote.quote, "author": selected_quote.author}
 
 @app.post("/journal-entry", response_model=JournalEntryResponse)
-async def create_journal_entry(entry: JournalEntryCreate, db: Session = Depends(get_db)):
+async def create_journal_entry(entry: JournalEntryCreate, user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     """Create or update a journal entry for today"""
     today = date.today()
     
-    # Check if entry exists for today
-    existing_entry = db.query(JournalEntry).filter(JournalEntry.date == today).first()
+    # Get current user
+    user = get_user_by_firebase_uid(db, user_data["uid"])
+    
+    # Check if entry exists for today for this user
+    existing_entry = db.query(JournalEntry).filter(
+        JournalEntry.date == today,
+        JournalEntry.user_id == user.id
+    ).first()
     
     if existing_entry:
         # Update existing entry
@@ -119,6 +194,7 @@ async def create_journal_entry(entry: JournalEntryCreate, db: Session = Depends(
     else:
         # Create new entry
         db_entry = JournalEntry(
+            user_id=user.id,
             date=today,
             gratitude_answers=entry.gratitude_answers,
             emotion=entry.emotion,
@@ -132,11 +208,19 @@ async def create_journal_entry(entry: JournalEntryCreate, db: Session = Depends(
         return db_entry
 
 @app.get("/journal-entry/{entry_date}", response_model=JournalEntryResponse)
-async def get_journal_entry(entry_date: str, db: Session = Depends(get_db)):
+async def get_journal_entry(entry_date: str, user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get journal entry for a specific date"""
     try:
         entry_date_obj = datetime.strptime(entry_date, "%Y-%m-%d").date()
-        entry = db.query(JournalEntry).filter(JournalEntry.date == entry_date_obj).first()
+        
+        # Get current user
+        user = get_user_by_firebase_uid(db, user_data["uid"])
+        
+        entry = db.query(JournalEntry).filter(
+            JournalEntry.date == entry_date_obj,
+            JournalEntry.user_id == user.id
+        ).first()
+        
         if not entry:
             raise HTTPException(status_code=404, detail="Journal entry not found")
         return entry
@@ -144,9 +228,14 @@ async def get_journal_entry(entry_date: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
 
 @app.get("/journal-entries", response_model=List[JournalEntryResponse])
-async def get_all_journal_entries(db: Session = Depends(get_db)):
-    """Get all journal entries"""
-    entries = db.query(JournalEntry).order_by(JournalEntry.date.desc()).all()
+async def get_all_journal_entries(user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get all journal entries for the current user"""
+    # Get current user
+    user = get_user_by_firebase_uid(db, user_data["uid"])
+    
+    entries = db.query(JournalEntry).filter(
+        JournalEntry.user_id == user.id
+    ).order_by(JournalEntry.date.desc()).all()
     return entries
 
 @app.get("/emotions")
