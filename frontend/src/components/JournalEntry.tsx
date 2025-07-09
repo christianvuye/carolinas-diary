@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { apiService, VisualSettings } from '../services/api';
+import { firestoreService } from '../services/firestore';
+import { useAuth } from '../context/AuthContext';
 import GratitudeSection from './GratitudeSection';
 import EmotionSection from './EmotionSection';
 import CustomizationPanel from './CustomizationPanel';
+import DatePicker from './DatePicker';
 import './JournalEntry.css';
 
 interface JournalEntryProps {
   date: Date;
+  onDateChange: (date: Date) => void;
 }
 
 interface JournalData {
@@ -22,7 +26,8 @@ interface JournalData {
   updated_at?: string;
 }
 
-const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
+const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
+  const { currentUser } = useAuth();
   const [journalData, setJournalData] = useState<JournalData>({
     gratitude_answers: ['', '', '', '', ''],
     emotion_answers: [],
@@ -45,36 +50,66 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
   }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadJournalEntry = async () => {
+    if (!currentUser) return;
+    
     try {
       const dateStr = date.toISOString().split('T')[0];
-      const response = await apiService.getJournalEntry(dateStr);
-      setJournalData({
-        ...response,
-        gratitude_answers: response.gratitude_answers || ['', '', '', '', ''],
-        emotion_answers: response.emotion_answers || [],
-        visual_settings: response.visual_settings || {
-          backgroundColor: '#ffffff',
-          textColor: '#333333',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '16px',
-          stickers: []
+      
+      // Try to load from Firestore first
+      const firestoreEntry = await firestoreService.getJournalEntry(currentUser.uid, dateStr);
+      
+      if (firestoreEntry) {
+        setJournalData({
+          gratitude_answers: firestoreEntry.gratitude_answers || ['', '', '', '', ''],
+          emotion: firestoreEntry.emotion,
+          emotion_answers: firestoreEntry.emotion_answers || [],
+          custom_text: firestoreEntry.custom_text,
+          visual_settings: firestoreEntry.visual_settings || {
+            backgroundColor: '#ffffff',
+            textColor: '#333333',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '16px',
+            stickers: []
+          }
+        });
+      } else {
+        // Fallback to API if no Firestore entry exists
+        try {
+          const response = await apiService.getJournalEntry(dateStr);
+          setJournalData({
+            ...response,
+            gratitude_answers: response.gratitude_answers || ['', '', '', '', ''],
+            emotion_answers: response.emotion_answers || [],
+            visual_settings: response.visual_settings || {
+              backgroundColor: '#ffffff',
+              textColor: '#333333',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '16px',
+              stickers: []
+            }
+          });
+        } catch (apiError) {
+          console.log('No existing entry found, starting fresh');
         }
-      });
+      }
     } catch (error) {
-      console.log('No existing entry for today, starting fresh');
+      console.error('Error loading journal entry:', error);
     } finally {
       setIsInitialized(true);
     }
   };
 
   const saveJournalEntry = async () => {
+    if (!currentUser) return;
+    
     setIsLoading(true);
     try {
+      const dateStr = date.toISOString().split('T')[0];
       const dataToSave = {
-        ...journalData,
-        date: date.toISOString().split('T')[0],
         gratitude_answers: journalData.gratitude_answers || ['', '', '', '', ''],
+        emotion: journalData.emotion,
         emotion_answers: journalData.emotion_answers || [],
+        custom_text: journalData.custom_text,
         visual_settings: journalData.visual_settings || {
           backgroundColor: '#ffffff',
           textColor: '#333333',
@@ -83,7 +118,20 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
           stickers: []
         }
       };
-      await apiService.saveJournalEntry(dataToSave);
+      
+      // Save to Firestore
+      await firestoreService.saveJournalEntry(currentUser.uid, dateStr, dataToSave);
+      
+      // Also try to save to API as backup (if available)
+      try {
+        await apiService.saveJournalEntry({
+          ...dataToSave,
+          date: dateStr
+        });
+      } catch (apiError) {
+        console.log('API save failed, but Firestore save succeeded');
+      }
+      
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
     } catch (error) {
@@ -122,7 +170,13 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
   return (
     <div className="journal-entry" style={journalStyle}>
       <div className="journal-header">
-        <h2>Today's Journal Entry</h2>
+        <div className="journal-title-section">
+          <h2>Journal Entry</h2>
+          <DatePicker 
+            selectedDate={date}
+            onDateChange={onDateChange}
+          />
+        </div>
         <div className="journal-actions">
           <button
             className="customize-btn"
@@ -131,11 +185,11 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date }) => {
             🎨 Customize
           </button>
           <button
-            className="save-btn"
+            className={`save-btn ${isLoading ? 'saving' : ''} ${isSaved ? 'saved' : ''}`}
             onClick={saveJournalEntry}
             disabled={isLoading}
           >
-            {isLoading ? 'Saving...' : isSaved ? 'Saved!' : 'Save Entry'}
+            {isLoading ? 'Saving...' : isSaved ? '✓ Saved!' : 'Save Entry'}
           </button>
         </div>
       </div>

@@ -26,7 +26,7 @@
 }
 
 .emotions-grid {
-  display: grid;
+  display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
@@ -52,6 +52,8 @@
 .emotion-button.selected {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: white !important;
+  border-color: currentColor !important;
 }
 
 .emotion-content {

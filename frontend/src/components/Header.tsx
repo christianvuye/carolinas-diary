@@ -1,10 +1,13 @@
 import React from 'react';
-import { Heart, LogOut, User } from 'lucide-react';
+import { Heart, LogOut, User, BookOpen, Edit3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 
 const Header: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -22,6 +25,24 @@ const Header: React.FC = () => {
           <h1>Carolina's Diary</h1>
         </div>
         <div className="header-right">
+          {currentUser && (
+            <nav className="header-nav">
+              <button 
+                className={`nav-btn ${location.pathname === '/' ? 'active' : ''}`}
+                onClick={() => navigate('/')}
+              >
+                <Edit3 size={16} />
+                Write
+              </button>
+              <button 
+                className={`nav-btn ${location.pathname === '/entries' ? 'active' : ''}`}
+                onClick={() => navigate('/entries')}
+              >
+                <BookOpen size={16} />
+                All Entries
+              </button>
+            </nav>
+          )}
           <div className="header-date">
             {new Date().toLocaleDateString('en-US', { 
               weekday: 'long', 
