@@ -4,6 +4,7 @@ A beautiful, personalized journaling web application designed specifically for C
 
 ## Features
 
+- **Google OAuth Authentication**: Secure login with Google accounts
 - **Daily Gratitude Practice**: 5 rotating questions to help cultivate gratitude
 - **Emotion Tracking**: Select from 13 different emotions with tailored reflection questions
 - **Inspirational Quotes**: Famous quotes related to your current emotion
@@ -32,6 +33,7 @@ A beautiful, personalized journaling web application designed specifically for C
 - **Backend**: Python with FastAPI
 - **Database**: SQLite
 - **Frontend**: React with TypeScript
+- **Authentication**: Firebase Authentication with Google OAuth
 - **Styling**: Custom CSS with gradients and animations
 
 ## Setup Instructions
@@ -54,9 +56,15 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Run the backend server:
+4. Set up environment variables:
 ```bash
-python main.py
+cp .env.example .env
+# Edit .env with your Firebase Admin SDK credentials
+```
+
+5. Run the backend server:
+```bash
+uvicorn main:app --reload
 ```
 
 The backend will start on `http://localhost:8000`
@@ -73,12 +81,27 @@ cd frontend
 npm install
 ```
 
-3. Start the development server:
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your Firebase configuration
+```
+
+4. Start the development server:
 ```bash
 npm start
 ```
 
 The frontend will start on `http://localhost:3000`
+
+### Quick Setup
+
+Run the setup script to create environment files:
+```bash
+./setup-env.sh
+```
+
+For detailed Google OAuth setup instructions, see [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md).
 
 ## Usage
 
