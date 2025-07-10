@@ -204,6 +204,39 @@
   }
 }
 
+/* iPad and tablet layout - stack vertically to prevent overlap */
+@media (max-width: 820px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    padding: 0 1rem;
+  }
+  
+  .header-right {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    align-items: center;
+  }
+  
+  .header-nav {
+    justify-content: center;
+    order: 1;
+  }
+  
+  .header-date {
+    order: 2;
+    text-align: center;
+    min-width: auto;
+  }
+  
+  .user-menu {
+    order: 3;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
