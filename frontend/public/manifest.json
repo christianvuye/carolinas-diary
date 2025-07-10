@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "name": "Carolina's Diary",
+  "short_name": "Carolina's Diary",
+  "description": "A beautiful, personal journaling app for daily gratitude and emotional wellness",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +11,48 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "maskable any"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "maskable any"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "theme_color": "#ff6b9d",
+  "background_color": "#ffffff",
+  "categories": ["lifestyle", "productivity", "health"],
+  "lang": "en",
+  "shortcuts": [
+    {
+      "name": "New Entry",
+      "short_name": "New Entry",
+      "description": "Create a new journal entry",
+      "url": "/",
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "All Entries",
+      "short_name": "All Entries", 
+      "description": "View all journal entries",
+      "url": "/entries",
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

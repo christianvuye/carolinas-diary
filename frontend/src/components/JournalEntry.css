@@ -221,4 +221,68 @@
     width: 100%;
     justify-content: center;
   }
+  
+  /* Enhanced touch targets for mobile */
+  .customize-btn, .save-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    min-height: 44px;
+    min-width: 120px;
+  }
+  
+  .continue-editing-btn,
+  .new-entry-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    min-height: 44px;
+    min-width: 140px;
+  }
+  
+  .post-save-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  
+  .continue-editing-btn,
+  .new-entry-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .journal-entry {
+    margin: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .journal-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .custom-text-section {
+    padding: 1rem;
+  }
+  
+  .custom-text-area {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 1rem;
+    min-height: 120px;
+  }
+  
+  /* Even larger touch targets for small screens */
+  .customize-btn, .save-btn {
+    padding: 1.2rem 2.5rem;
+    font-size: 1.1rem;
+    min-height: 48px;
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .journal-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
 }

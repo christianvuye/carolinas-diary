@@ -7,6 +7,8 @@ import Header from './components/Header';
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
+import PWAInstallBanner from './components/PWAInstallBanner';
+import OfflineIndicator from './components/OfflineIndicator';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { apiService } from './services/api';
 
@@ -58,6 +60,8 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <PWAInstallBanner />
+        <OfflineIndicator />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
