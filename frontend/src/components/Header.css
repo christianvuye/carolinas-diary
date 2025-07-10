@@ -204,17 +204,20 @@
   }
 }
 
-/* iPad and tablet layout - stack vertically to prevent overlap */
-@media (max-width: 820px) {
+/* iPad Mini and tablet layout - stack vertically to prevent overlap */
+@media (max-width: 1024px) and (max-height: 768px),
+       (max-width: 820px),
+       (device-width: 768px) and (device-height: 1024px),
+       (device-width: 1024px) and (device-height: 768px) {
   .header-content {
-    flex-direction: column;
+    flex-direction: column !important;
     gap: 1rem;
     align-items: center;
     padding: 0 1rem;
   }
   
   .header-right {
-    flex-direction: column;
+    flex-direction: column !important;
     gap: 0.75rem;
     width: 100%;
     align-items: center;
@@ -223,17 +226,44 @@
   .header-nav {
     justify-content: center;
     order: 1;
+    flex-wrap: wrap;
+  }
+  
+  .header-nav .nav-btn {
+    margin: 0.25rem;
   }
   
   .header-date {
     order: 2;
     text-align: center;
     min-width: auto;
+    margin: 0.5rem 0;
   }
   
   .user-menu {
     order: 3;
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* Specific Safari iPad Mini fixes */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 1024px) {
+    .header-content {
+      flex-direction: column !important;
+      gap: 1rem;
+      align-items: center;
+      padding: 0 1rem;
+    }
+    
+    .header-right {
+      flex-direction: column !important;
+      gap: 0.75rem;
+      width: 100%;
+      align-items: center;
+    }
   }
 }
 
