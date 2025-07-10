@@ -5,29 +5,154 @@ import { Calendar, Heart, Brain, BookOpen, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './AllEntries.css';
 
+// Global cache for entries to persist across component mounts
+const entriesCache = new Map<string, JournalEntryFirestore[]>();
+
+// Function to refresh cache when entries are updated
+export const refreshEntriesCache = (userId: string) => {
+  entriesCache.delete(userId);
+  // Trigger a re-render by dispatching a custom event
+  window.dispatchEvent(new CustomEvent('entriesUpdated', { detail: { userId } }));
+};
+
 const AllEntries: React.FC = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [entries, setEntries] = useState<JournalEntryFirestore[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEmotion, setFilterEmotion] = useState('');
 
   useEffect(() => {
-    loadAllEntries();
-  }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadAllEntries = async () => {
     if (!currentUser) return;
     
-    setLoading(true);
+    // Use consistent user ID for development
+    const userId = 'dev-user-123';
+    
+    // Check cache first for instant loading
+    const cacheKey = userId;
+    const cachedEntries = entriesCache.get(cacheKey);
+    
+    if (cachedEntries) {
+      setEntries(cachedEntries);
+      setLoading(false);
+      // Still refresh in background
+      loadAllEntries(true);
+    } else {
+      loadAllEntries(false);
+    }
+    
+    // Listen for entry updates
+    const handleEntriesUpdated = (event: CustomEvent) => {
+      if (event.detail.userId === userId) {
+        console.log('Entries updated, refreshing...');
+        loadAllEntries(false);
+      }
+    };
+    
+    window.addEventListener('entriesUpdated', handleEntriesUpdated as EventListener);
+    
+    return () => {
+      window.removeEventListener('entriesUpdated', handleEntriesUpdated as EventListener);
+    };
+  }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadAllEntries = async (isBackgroundRefresh = false) => {
+    if (!currentUser) return;
+    
+    const userId = 'dev-user-123'; // For development consistency
+    
+    if (!isBackgroundRefresh) {
+      setLoading(true);
+    }
+    
     try {
-      const allEntries = await firestoreService.getAllJournalEntries(currentUser.uid);
-      setEntries(allEntries);
+      console.log('Loading entries for user:', userId);
+      
+      // Try to load from localStorage first for instant loading
+      const allEntriesKey = `all_entries_${userId}`;
+      const localEntries = localStorage.getItem(allEntriesKey);
+      
+      if (localEntries && !isBackgroundRefresh) {
+        try {
+          const parsedEntries = JSON.parse(localEntries);
+          console.log('Loaded entries from localStorage:', parsedEntries.length);
+          
+          // Validate and fix entries data structure
+          const validatedEntries = parsedEntries.map((entry: any) => ({
+            ...entry,
+            updatedAt: typeof entry.updatedAt === 'string' ? entry.updatedAt : new Date().toISOString(),
+            createdAt: typeof entry.createdAt === 'string' ? entry.createdAt : new Date().toISOString()
+          }));
+          
+          setEntries(validatedEntries);
+          entriesCache.set(userId, validatedEntries);
+          setLoading(false);
+          
+          // Load from Firestore in background to sync
+          setTimeout(() => {
+            loadFromFirestore(userId, true);
+          }, 100);
+          return;
+        } catch (error) {
+          console.warn('Error parsing localStorage entries, clearing:', error);
+          localStorage.removeItem(allEntriesKey);
+        }
+      }
+      
+      // If no localStorage entries, show empty state immediately and try Firestore quickly
+      if (!localEntries && !isBackgroundRefresh) {
+        setEntries([]);
+        setLoading(false);
+        
+        // Try Firestore briefly in background
+        setTimeout(() => {
+          loadFromFirestore(userId, true);
+        }, 100);
+        return;
+      }
+      
+      // Fallback to Firestore
+      await loadFromFirestore(userId, isBackgroundRefresh);
     } catch (error) {
       console.error('Error loading entries:', error);
-    } finally {
       setLoading(false);
+    }
+  };
+  
+  const loadFromFirestore = async (userId: string, isBackgroundRefresh: boolean) => {
+    try {
+      const allEntriesKey = `all_entries_${userId}`;
+      
+      // Load recent entries first for faster initial display
+      const recentEntries = await firestoreService.getRecentJournalEntries(userId, 50);
+      console.log('Loaded recent entries from Firestore:', recentEntries.length);
+      
+      if (recentEntries.length > 0) {
+        setEntries(recentEntries);
+        entriesCache.set(userId, recentEntries);
+        
+        // Update localStorage cache
+        localStorage.setItem(allEntriesKey, JSON.stringify(recentEntries));
+      }
+      
+      if (!isBackgroundRefresh) {
+        setLoading(false);
+      }
+      
+      // Then load all entries in the background if needed
+      if (recentEntries.length === 50) {
+        const allEntries = await firestoreService.getAllJournalEntries(userId);
+        console.log('Loaded all entries from Firestore:', allEntries.length);
+        setEntries(allEntries);
+        entriesCache.set(userId, allEntries);
+        localStorage.setItem(allEntriesKey, JSON.stringify(allEntries));
+      }
+    } catch (error) {
+      console.error('Error loading from Firestore:', error);
+      if (!isBackgroundRefresh) {
+        setLoading(false);
+      }
     }
   };
 
@@ -93,7 +218,7 @@ const AllEntries: React.FC = () => {
 
   const uniqueEmotions = Array.from(new Set(entries.map(entry => entry.emotion).filter(Boolean))) as string[];
 
-  if (loading) {
+  if (loading && entries.length === 0) {
     return (
       <div className="all-entries">
         <div className="entries-header">
@@ -101,7 +226,7 @@ const AllEntries: React.FC = () => {
         </div>
         <div className="loading-state">
           <div className="loading-spinner"></div>
-          <p>Loading your journal entries...</p>
+          <p>Loading entries...</p>
         </div>
       </div>
     );
@@ -201,7 +326,20 @@ const AllEntries: React.FC = () => {
               
               <div className="entry-footer">
                 <span className="entry-time">
-                  {entry.updatedAt.toDate().toLocaleDateString()}
+                  {(() => {
+                    try {
+                      if (typeof entry.updatedAt === 'string') {
+                        return new Date(entry.updatedAt).toLocaleDateString();
+                      } else if (entry.updatedAt && typeof entry.updatedAt.toDate === 'function') {
+                        return entry.updatedAt.toDate().toLocaleDateString();
+                      } else {
+                        return new Date().toLocaleDateString();
+                      }
+                    } catch (error) {
+                      console.warn('Error formatting date:', error);
+                      return new Date().toLocaleDateString();
+                    }
+                  })()}
                 </span>
               </div>
             </div>

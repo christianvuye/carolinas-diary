@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiService, VisualSettings } from '../services/api';
 import { firestoreService } from '../services/firestore';
 import { useAuth } from '../context/AuthContext';
+import { refreshEntriesCache } from './AllEntries';
 import GratitudeSection from './GratitudeSection';
 import EmotionSection from './EmotionSection';
 import CustomizationPanel from './CustomizationPanel';
@@ -43,6 +44,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
   const [showCustomization, setShowCustomization] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [showPostSaveOptions, setShowPostSaveOptions] = useState(false);
   const [, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -54,9 +56,33 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
     
     try {
       const dateStr = date.toISOString().split('T')[0];
+      const userId = 'dev-user-123'; // For development consistency
       
-      // Try to load from Firestore first
-      const firestoreEntry = await firestoreService.getJournalEntry(currentUser.uid, dateStr);
+      // Try to load from localStorage first for instant loading
+      const localStorageKey = `journal_${userId}_${dateStr}`;
+      const localEntry = localStorage.getItem(localStorageKey);
+      
+      if (localEntry) {
+        const parsedEntry = JSON.parse(localEntry);
+        setJournalData({
+          gratitude_answers: parsedEntry.gratitude_answers || ['', '', '', '', ''],
+          emotion: parsedEntry.emotion,
+          emotion_answers: parsedEntry.emotion_answers || [],
+          custom_text: parsedEntry.custom_text,
+          visual_settings: parsedEntry.visual_settings || {
+            backgroundColor: '#ffffff',
+            textColor: '#333333',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '16px',
+            stickers: []
+          }
+        });
+        setIsInitialized(true);
+        return; // Exit early if we have local data
+      }
+      
+      // Try to load from Firestore as fallback
+      const firestoreEntry = await firestoreService.getJournalEntry(userId, dateStr);
       
       if (firestoreEntry) {
         setJournalData({
@@ -119,21 +145,64 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
         }
       };
       
-      // Save to Firestore
-      await firestoreService.saveJournalEntry(currentUser.uid, dateStr, dataToSave);
+      // Use consistent user ID for development
+      const userId = 'dev-user-123'; // For development consistency
+      console.log('Saving entry for user:', userId, 'date:', dateStr);
       
-      // Also try to save to API as backup (if available)
-      try {
-        await apiService.saveJournalEntry({
-          ...dataToSave,
-          date: dateStr
-        });
-      } catch (apiError) {
-        console.log('API save failed, but Firestore save succeeded');
+      // Save to localStorage immediately for instant performance
+      const localStorageKey = `journal_${userId}_${dateStr}`;
+      localStorage.setItem(localStorageKey, JSON.stringify({
+        ...dataToSave,
+        date: dateStr,
+        userId,
+        savedAt: new Date().toISOString()
+      }));
+      
+      // Update all entries cache in localStorage
+      const allEntriesKey = `all_entries_${userId}`;
+      const existingEntries = JSON.parse(localStorage.getItem(allEntriesKey) || '[]');
+      const entryIndex = existingEntries.findIndex((entry: any) => entry.date === dateStr);
+      
+      const now = new Date();
+      const entryToCache = {
+        id: `${userId}_${dateStr}`,
+        userId,
+        date: dateStr,
+        ...dataToSave,
+        createdAt: entryIndex === -1 ? now.toISOString() : existingEntries[entryIndex].createdAt,
+        updatedAt: now.toISOString()
+      };
+      
+      if (entryIndex === -1) {
+        existingEntries.unshift(entryToCache);
+      } else {
+        existingEntries[entryIndex] = entryToCache;
       }
       
+      localStorage.setItem(allEntriesKey, JSON.stringify(existingEntries));
+      
+      // Try to save to Firestore in background (don't await)
+      firestoreService.saveJournalEntry(userId, dateStr, dataToSave).catch(error => {
+        console.log('Firestore save failed, but localStorage succeeded:', error);
+      });
+      
+      // Also try to save to API as backup (don't await)
+      apiService.saveJournalEntry({
+        ...dataToSave,
+        date: dateStr
+      }).catch(error => {
+        console.log('API save failed, but localStorage succeeded:', error);
+      });
+      
       setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2000);
+      setShowPostSaveOptions(true);
+      setTimeout(() => {
+        setIsSaved(false);
+        setShowPostSaveOptions(false);
+      }, 5000);
+      
+      // Refresh entries cache to show updated data
+      refreshEntriesCache(userId);
     } catch (error) {
       console.error('Error saving journal entry:', error);
     } finally {
@@ -184,13 +253,6 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
           >
             🎨 Customize
           </button>
-          <button
-            className={`save-btn ${isLoading ? 'saving' : ''} ${isSaved ? 'saved' : ''}`}
-            onClick={saveJournalEntry}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : isSaved ? '✓ Saved!' : 'Save Entry'}
-          </button>
         </div>
       </div>
 
@@ -230,6 +292,40 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
             rows={6}
           />
         </div>
+      </div>
+
+      <div className="journal-footer">
+        {!showPostSaveOptions ? (
+          <button
+            className={`save-btn ${isLoading ? 'saving' : ''} ${isSaved ? 'saved' : ''}`}
+            onClick={saveJournalEntry}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : isSaved ? '✓ Saved!' : 'Save Entry'}
+          </button>
+        ) : (
+          <div className="post-save-options">
+            <p className="save-success-message">✓ Entry saved successfully!</p>
+            <div className="post-save-buttons">
+              <button
+                className="continue-editing-btn"
+                onClick={() => setShowPostSaveOptions(false)}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="new-entry-btn"
+                onClick={() => {
+                  const today = new Date();
+                  onDateChange(today);
+                  setShowPostSaveOptions(false);
+                }}
+              >
+                Create New Entry
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="stickers-container">

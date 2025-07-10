@@ -36,6 +36,68 @@
   gap: 1rem;
 }
 
+.journal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0 1rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.post-save-options {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.save-success-message {
+  color: #2ed573;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.post-save-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.continue-editing-btn,
+.new-entry-btn {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.continue-editing-btn {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  color: white;
+}
+
+.continue-editing-btn:hover {
+  background: linear-gradient(135deg, #0984e3, #74b9ff);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+}
+
+.new-entry-btn {
+  background: linear-gradient(135deg, #ff8cc8, #ff6b9d);
+  color: white;
+}
+
+.new-entry-btn:hover {
+  background: linear-gradient(135deg, #ff6b9d, #ff8cc8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+}
+
 .customize-btn, .save-btn {
   padding: 0.8rem 1.5rem;
   border: none;

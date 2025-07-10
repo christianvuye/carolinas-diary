@@ -7,6 +7,7 @@ import {
   query, 
   where, 
   orderBy, 
+  limit,
   Timestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -37,6 +38,8 @@ export interface JournalEntryFirestore {
 export const firestoreService = {
   // Save or update a journal entry
   async saveJournalEntry(userId: string, date: string, entryData: Omit<JournalEntryFirestore, 'id' | 'userId' | 'date' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    console.log('Saving journal entry:', { userId, date, entryData });
+    
     const entryId = `${userId}_${date}`;
     const entryRef = doc(db, 'journal_entries', entryId);
     
@@ -54,7 +57,9 @@ export const firestoreService = {
       updatedAt: now
     };
     
+    console.log('Saving entry to Firestore:', entryToSave);
     await setDoc(entryRef, entryToSave);
+    console.log('Entry saved successfully');
   },
 
   // Get a specific journal entry by date
@@ -113,25 +118,27 @@ export const firestoreService = {
   },
 
   // Get recent journal entries (last N entries)
-  async getRecentJournalEntries(userId: string, limit: number = 10): Promise<JournalEntryFirestore[]> {
+  async getRecentJournalEntries(userId: string, limitCount: number = 10): Promise<JournalEntryFirestore[]> {
+    console.log('Fetching recent entries for user:', userId, 'limit:', limitCount);
+    
     const entriesRef = collection(db, 'journal_entries');
     const q = query(
       entriesRef,
       where('userId', '==', userId),
-      orderBy('date', 'desc')
+      orderBy('date', 'desc'),
+      limit(limitCount)
     );
     
     const querySnapshot = await getDocs(q);
     const entries: JournalEntryFirestore[] = [];
-    let count = 0;
     
     querySnapshot.forEach((doc) => {
-      if (count < limit) {
-        entries.push(doc.data() as JournalEntryFirestore);
-        count++;
-      }
+      const entry = doc.data() as JournalEntryFirestore;
+      console.log('Found entry:', entry);
+      entries.push(entry);
     });
     
+    console.log('Total entries found:', entries.length);
     return entries;
   }
 };
