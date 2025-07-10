@@ -24,13 +24,17 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Carolina's Diary", description="A personalized journaling app")
 
-# CORS middleware
+# CORS middleware with improved security
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://carolinas-diary.netlify.app",  # Production domain
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-Session-ID"],  # Expose session ID header
 )
 
 
@@ -250,8 +254,28 @@ async def get_journal_entry(
     db: Session = Depends(get_db),
 ):
     """Get journal entry for a specific date"""
+    # Validate date format and range to prevent injection
+    if not entry_date or len(entry_date) != 10:
+        raise HTTPException(
+            status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+        )
+    
+    # Check for valid characters only (digits and hyphens)
+    if not all(c.isdigit() or c == '-' for c in entry_date):
+        raise HTTPException(
+            status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+        )
+    
     try:
         entry_date_obj = datetime.strptime(entry_date, "%Y-%m-%d").date()
+        
+        # Validate date range (reasonable bounds)
+        min_date = date(1900, 1, 1)
+        max_date = date(2100, 12, 31)
+        if entry_date_obj < min_date or entry_date_obj > max_date:
+            raise HTTPException(
+                status_code=400, detail="Date out of valid range (1900-2100)"
+            )
 
         # Get current user
         user = get_user_by_firebase_uid(db, user_data["uid"])
