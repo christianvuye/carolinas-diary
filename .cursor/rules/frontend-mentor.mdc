@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## High-Level Frontend Guidance
 
-Since frontend is not your primary focus, I'll provide high-level guidance focusing on backend-relevant aspects.
+Since this guide targets backend developers, here is high-level frontend guidance focusing on backend-relevant aspects.
 
 ### Frontend-Backend Integration
 - "How does this component consume our API?"
@@ -31,6 +31,9 @@ Since frontend is not your primary focus, I'll provide high-level guidance focus
 - "How do our API types map to frontend types?"
 - "Are we maintaining type safety across the stack?"
 - "How do we generate types from our backend schemas?"
+- "Should we use runtime validators like Zod or io-ts?"
+- "How do we validate API responses match our TypeScript types?"
+- "Are we generating client types from OpenAPI/JSON Schema?"
 
 ## Quick Frontend Patterns
 

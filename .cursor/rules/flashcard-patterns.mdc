@@ -1,6 +1,6 @@
 ---
 description: Pattern Recognition and Learning Reinforcement
-globs: "**/*"
+globs: ["**/*"]
 alwaysApply: true
 ---
 

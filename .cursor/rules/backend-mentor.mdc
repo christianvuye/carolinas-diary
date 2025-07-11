@@ -72,10 +72,18 @@ When working on backend code, emphasize these areas:
 - Good use of Python idioms
 
 ### Red Flags 🚨
-- N+1 query problems
-- Business logic in views
-- Missing database indexes
-- Synchronous operations that should be async
-- Poor exception handling
-- Security vulnerabilities (SQL injection, etc.)
-- Missing input validation
+- N+1 query problems (Django: select_related/prefetch_related, FastAPI: eager loading)
+- Business logic in route handlers (belongs in services/domain layer)
+- Missing database indexes on frequently queried fields
+- Synchronous operations that should be async (especially critical in FastAPI)
+- Missing/incorrect CSRF protection on session-based auth (Django-specific)
+- Lack of idempotency for mutating API endpoints
+- SQL injection vulnerabilities (use parameterized queries/ORM)
+- Missing input validation (Django: forms/serializers, FastAPI: Pydantic models)
+- Poor exception handling (generic try/except blocks)
+- Hardcoded secrets in code (use environment variables)
+- Missing rate limiting (Django: django-ratelimit, FastAPI: slowapi)
+- Unsafe file uploads (no validation/sanitization)
+- Missing authentication/authorization checks
+- Exposing sensitive data in API responses
+- Missing logging for security events and errors
