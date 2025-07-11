@@ -1,5 +1,9 @@
 .gratitude-section {
-  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(255, 140, 200, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 157, 0.1),
+    rgba(255, 140, 200, 0.1)
+  );
   padding: 2rem;
   border-radius: 15px;
   border: 2px solid rgba(255, 107, 157, 0.2);
@@ -69,11 +73,11 @@
   .gratitude-section {
     padding: 1.5rem;
   }
-  
+
   .section-header h3 {
     font-size: 1.2rem;
   }
-  
+
   .question-label {
     font-size: 0.9rem;
   }

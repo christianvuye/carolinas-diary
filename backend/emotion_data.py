@@ -1,3 +1,7 @@
+"""Data for emotion-based journaling prompts and inspirational quotes."""
+
+# flake8: noqa: E501
+
 GRATITUDE_QUESTIONS = [
     "What made you smile today?",
     "Who are you grateful for and why?",
@@ -29,10 +33,8 @@ EMOTION_QUESTIONS = {
         "What would you say to a friend experiencing this same anxiety?",
         "What has helped you manage anxiety in the past?",
         "What are you most worried about happening?",
-        "What evidence do you have that supports or contradicts your "
-        "anxious thoughts?",
-        "What would the worst-case scenario look like, and how would you "
-        + "handle it?",
+        "What evidence do you have that supports or contradicts your anxious thoughts?",
+        "What would the worst-case scenario look like, and how would you handle it?",
         "What small step can you take right now to feel more in control?",
         "What calming activities could you try today?",
     ],
@@ -178,15 +180,14 @@ EMOTION_QUESTIONS = {
         "What would the best-case scenario look like?",
         "What would the most likely outcome be?",
         "What would help you focus on the present moment instead?",
-        "What would you want to remember about your ability to handle " "difficulties?",
+        "What would you want to remember about your ability to handle difficulties?",
     ],
 }
 
 QUOTES_DATA = {
     "anxiety": [
         {
-            "quote": "You have been assigned this mountain to show others it "
-            "can be moved.",
+            "quote": "You have been assigned this mountain to show others it can be moved.",
             "author": "Mel Robbins",
         },
         {
@@ -195,15 +196,11 @@ QUOTES_DATA = {
         },
         {"quote": "The only way out is through.", "author": "Robert Frost"},
         {
-            "quote": (
-                "You are braver than you believe, stronger than you "
-                "seem, and smarter than you think."
-            ),
+            "quote": "You are braver than you believe, stronger than you seem, and smarter than you think.",
             "author": "A.A. Milne",
         },
         {
-            "quote": "Worry does not empty tomorrow of its sorrow, it empties "
-            "today of its strength.",
+            "quote": "Worry does not empty tomorrow of its sorrow, it empties today of its strength.",
             "author": "Corrie ten Boom",
         },
     ],
@@ -217,8 +214,7 @@ QUOTES_DATA = {
             "author": "Helen Keller",
         },
         {
-            "quote": "The way sadness works is one of the strange riddles of "
-            "the world.",
+            "quote": "The way sadness works is one of the strange riddles of the world.",
             "author": "Lemony Snicket",
         },
         {
@@ -232,13 +228,11 @@ QUOTES_DATA = {
     ],
     "stress": [
         {
-            "quote": "You have power over your mind - not outside events. "
-            "Realize this, and you will find strength.",
+            "quote": "You have power over your mind - not outside events. Realize this, and you will find strength.",
             "author": "Marcus Aurelius",
         },
         {
-            "quote": "The greatest weapon against stress is our ability to "
-            "choose one thought over another.",
+            "quote": "The greatest weapon against stress is our ability to choose one thought over another.",
             "author": "William James",
         },
         {
@@ -250,19 +244,13 @@ QUOTES_DATA = {
             "author": "Ovid",
         },
         {
-            "quote": (
-                "In the midst of winter, I found there was, within me, "
-                "an invincible summer."
-            ),
+            "quote": "In the midst of winter, I found there was, within me, an invincible summer.",
             "author": "Albert Camus",
         },
     ],
     "excitement": [
         {
-            "quote": (
-                "The future belongs to those who believe in the beauty "
-                "of their dreams."
-            ),
+            "quote": "The future belongs to those who believe in the beauty of their dreams.",
             "author": "Eleanor Roosevelt",
         },
         {
@@ -270,10 +258,7 @@ QUOTES_DATA = {
             "author": "Helen Keller",
         },
         {
-            "quote": (
-                "The best time to plant a tree was 20 years ago. The "
-                "second best time is now."
-            ),
+            "quote": "The best time to plant a tree was 20 years ago. The second best time is now.",
             "author": "Chinese Proverb",
         },
         {
@@ -281,56 +266,41 @@ QUOTES_DATA = {
             "author": "Amelia Earhart",
         },
         {
-            "quote": "What lies behind us and what lies before us are tiny "
-            "matters compared to what lies within us.",
+            "quote": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
             "author": "Ralph Waldo Emerson",
         },
     ],
     "anger": [
         {
-            "quote": (
-                "Holding on to anger is like grasping a hot coal with "
-                "the intent of throwing it at someone else; you are the "
-                "one who gets burned."
-            ),
+            "quote": "Holding on to anger is like grasping a hot coal with the intent of throwing it at someone else; you are the one who gets burned.",
             "author": "Buddha",
         },
         {
-            "quote": "For every minute you remain angry, you give up sixty "
-            "seconds of peace of mind.",
+            "quote": "For every minute you remain angry, you give up sixty seconds of peace of mind.",
             "author": "Ralph Waldo Emerson",
         },
         {
-            "quote": "Anger is an acid that can do more harm to the vessel in "
-            "which it is stored than to anything on which it is poured.",
+            "quote": "Anger is an acid that can do more harm to the vessel in which it is stored than to anything on which it is poured.",
             "author": "Mark Twain",
         },
         {"quote": "The best fighter is never angry.", "author": "Lao Tzu"},
         {
-            "quote": "Speak when you are angry and you will make the best "
-            "speech you will ever regret.",
+            "quote": "Speak when you are angry and you will make the best speech you will ever regret.",
             "author": "Ambrose Bierce",
         },
     ],
     "happiness": [
         {
-            "quote": (
-                "Happiness is not something ready-made. "
-                "It comes from your own actions."
-            ),
+            "quote": "Happiness is not something ready-made. It comes from your own actions.",
             "author": "Dalai Lama",
         },
         {
-            "quote": "The happiest people don't have the best of everything, "
-            "they just make the best of everything.",
+            "quote": "The happiest people don't have the best of everything, they just make the best of everything.",
             "author": "Unknown",
         },
         {"quote": "Happiness is a warm puppy.", "author": "Charles M. Schulz"},
         {
-            "quote": (
-                "Count your age by friends, not years. "
-                "Count your life by smiles, not tears."
-            ),
+            "quote": "Count your age by friends, not years. Count your life by smiles, not tears.",
             "author": "John Lennon",
         },
     ],
@@ -349,17 +319,13 @@ QUOTES_DATA = {
             "author": "E.E. Cummings",
         },
         {
-            "quote": "Joy does not simply happen to us. We have to choose joy "
-            "and keep choosing it every day.",
+            "quote": "Joy does not simply happen to us. We have to choose joy and keep choosing it every day.",
             "author": "Henri J.M. Nouwen",
         },
     ],
     "feeling overwhelmed": [
         {
-            "quote": (
-                "You don't have to see the whole staircase, just take "
-                "the first step."
-            ),
+            "quote": "You don't have to see the whole staircase, just take the first step.",
             "author": "Martin Luther King Jr.",
         },
         {"quote": "One day at a time.", "author": "Anonymous"},
@@ -376,10 +342,7 @@ QUOTES_DATA = {
             "author": "Theodore Roosevelt",
         },
         {
-            "quote": (
-                "The only person you are destined to become is the "
-                "person you decide to be."
-            ),
+            "quote": "The only person you are destined to become is the person you decide to be.",
             "author": "Ralph Waldo Emerson",
         },
         {
@@ -397,29 +360,20 @@ QUOTES_DATA = {
     ],
     "fatigue": [
         {
-            "quote": (
-                "Take care of your body. It's the only place you have to " "live."
-            ),
+            "quote": "Take care of your body. It's the only place you have to live.",
             "author": "Jim Rohn",
         },
         {
-            "quote": (
-                "Rest when you're weary. Refresh and renew yourself, "
-                "your body, your mind, your spirit."
-            ),
+            "quote": "Rest when you're weary. Refresh and renew yourself, your body, your mind, your spirit.",
             "author": "Ralph Marston",
         },
         {"quote": "Sleep is the best meditation.", "author": "Dalai Lama"},
         {
-            "quote": "Your body is precious. It is our vehicle for awakening. "
-            "Treat it with care.",
+            "quote": "Your body is precious. It is our vehicle for awakening. Treat it with care.",
             "author": "Buddha",
         },
         {
-            "quote": (
-                "Almost everything will work again if you unplug it for "
-                "a few minutes, including you."
-            ),
+            "quote": "Almost everything will work again if you unplug it for a few minutes, including you.",
             "author": "Anne Lamott",
         },
     ],
@@ -433,20 +387,15 @@ QUOTES_DATA = {
             "author": "Meghan Markle",
         },
         {
-            "quote": (
-                "What lies behind us and what lies before us are tiny "
-                "matters compared to what lies within us."
-            ),
+            "quote": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
             "author": "Ralph Waldo Emerson",
         },
         {
-            "quote": "You yourself, as much as anybody in the entire universe,"
-            "deserve your love and affection.",
+            "quote": "You yourself, as much as anybody in the entire universe, deserve your love and affection.",
             "author": "Buddha",
         },
         {
-            "quote": "The way to develop self-confidence is to do the thing "
-            "you fear and get a record of successful experiences behind you.",
+            "quote": "The way to develop self-confidence is to do the thing you fear and get a record of successful experiences behind you.",
             "author": "William Jennings Bryan",
         },
     ],
@@ -456,8 +405,7 @@ QUOTES_DATA = {
             "author": "Suzy Kassem",
         },
         {
-            "quote": "The only way to make sense out of change is to plunge "
-            "into it, move with it, and join the dance.",
+            "quote": "The only way to make sense out of change is to plunge into it, move with it, and join the dance.",
             "author": "Alan Watts",
         },
         {
@@ -465,13 +413,11 @@ QUOTES_DATA = {
             "author": "Benjamin Spock",
         },
         {
-            "quote": "If you hear a voice within you say 'you cannot paint,' "
-            "then by all means paint, and that voice will be silenced.",
+            "quote": "If you hear a voice within you say 'you cannot paint,' then by all means paint, and that voice will be silenced.",
             "author": "Vincent van Gogh",
         },
         {
-            "quote": "You are never too old to set another goal or to dream a "
-            "new dream.",
+            "quote": "You are never too old to set another goal or to dream a new dream.",
             "author": "C.S. Lewis",
         },
     ],
@@ -486,8 +432,7 @@ QUOTES_DATA = {
             "author": "Anonymous",
         },
         {
-            "quote": "The present moment is the only time over which we have "
-            "dominion.",
+            "quote": "The present moment is the only time over which we have dominion.",
             "author": "Thích Nhất Hạnh",
         },
         {

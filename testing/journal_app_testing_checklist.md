@@ -24,14 +24,14 @@
 
 ### Data Isolation Test
 - [ ] User A logs in → creates journal entry for today
-- [ ] User B logs in → creates journal entry for today  
+- [ ] User B logs in → creates journal entry for today
 - [ ] User A logs in → should only see their entry
 - [ ] User B logs in → should only see their entry
 
 ### Security Test
 - [ ] Test API without auth token (should return 401 Unauthorized)
 ```bash
-curl -X GET "your-api-url/journal-entries" 
+curl -X GET "your-api-url/journal-entries"
 # Should return 401 Unauthorized
 ```
 

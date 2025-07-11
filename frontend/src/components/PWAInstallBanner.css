@@ -154,12 +154,12 @@
   .pwa-install-banner {
     animation: none;
   }
-  
+
   .pwa-install-btn,
   .pwa-dismiss-btn {
     transition: none;
   }
-  
+
   .pwa-install-btn:hover,
   .pwa-dismiss-btn:hover {
     transform: none;

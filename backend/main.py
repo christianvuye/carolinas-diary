@@ -2,19 +2,27 @@
 
 import random
 from datetime import date, datetime
-from typing import List
-
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.exc import DatabaseError, SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from auth import get_current_user, get_current_user_dev
 from database import Base, SessionLocal, engine
 from emotion_data import EMOTION_QUESTIONS, GRATITUDE_QUESTIONS, QUOTES_DATA
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from models import EmotionQuestion, GratitudeQuestion, JournalEntry, Quote, User
-from schemas import EmotionQuestionResponse, JournalEntryCreate, JournalEntryResponse, UserResponse, UserUpdate
+from schemas import (
+    Emotion,
+    EmotionQuestionResponse,
+    JournalEntryCreate,
+    JournalEntryResponse,
+    PaginatedJournalEntriesResponse,
+    PaginationMetadata,
+    UserResponse,
+    UserUpdate,
+)
+from sqlalchemy.exc import DatabaseError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
+# flake8: noqa: E501
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -63,7 +71,9 @@ def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User:
     """Get user by Firebase UID, create if doesn't exist"""
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found. Please register first.")
+        raise HTTPException(
+            status_code=404, detail="User not found. Please register first."
+        )
     return user
 
 
@@ -204,16 +214,18 @@ async def get_gratitude_questions(db: Session = Depends(get_db)):
 
 
 @app.get("/emotion-questions/{emotion}")
-async def get_emotion_questions(emotion: str, db: Session = Depends(get_db)):
+async def get_emotion_questions(emotion: Emotion, db: Session = Depends(get_db)):
     """Get questions for a specific emotion"""
-    questions = db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion).all()
+    questions = (
+        db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion.value).all()
+    )
     return [EmotionQuestionResponse(id=q.id, question=q.question) for q in questions]
 
 
 @app.get("/quote/{emotion}")
-async def get_quote_for_emotion(emotion: str, db: Session = Depends(get_db)):
+async def get_quote_for_emotion(emotion: Emotion, db: Session = Depends(get_db)):
     """Get a random quote for a specific emotion"""
-    quotes = db.query(Quote).filter(Quote.emotion == emotion).all()
+    quotes = db.query(Quote).filter(Quote.emotion == emotion.value).all()
     if not quotes:
         return {"quote": "Every day is a new beginning.", "author": "Unknown"}
     selected_quote = random.choice(quotes)
@@ -233,12 +245,16 @@ async def create_journal_entry(
     user = get_user_by_firebase_uid(db, user_data["uid"])
 
     # Check if entry exists for today for this user
-    existing_entry = db.query(JournalEntry).filter(JournalEntry.date == today, JournalEntry.user_id == user.id).first()
+    existing_entry = (
+        db.query(JournalEntry)
+        .filter(JournalEntry.date == today, JournalEntry.user_id == user.id)
+        .first()
+    )
 
     if existing_entry:
         # Update existing entry
         existing_entry.gratitude_answers = entry.gratitude_answers
-        existing_entry.emotion = entry.emotion
+        existing_entry.emotion = entry.emotion.value if entry.emotion else None
         existing_entry.emotion_answers = entry.emotion_answers
         existing_entry.custom_text = entry.custom_text
         existing_entry.visual_settings = entry.visual_settings
@@ -252,7 +268,7 @@ async def create_journal_entry(
             user_id=user.id,
             date=today,
             gratitude_answers=entry.gratitude_answers,
-            emotion=entry.emotion,
+            emotion=entry.emotion.value if entry.emotion else None,
             emotion_answers=entry.emotion_answers,
             custom_text=entry.custom_text,
             visual_settings=entry.visual_settings,
@@ -292,26 +308,75 @@ async def get_journal_entry(
             )
         return entry
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD") from exc
+        raise HTTPException(
+            status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+        ) from exc
 
 
-@app.get("/journal-entries", response_model=List[JournalEntryResponse])
+@app.get("/journal-entries", response_model=PaginatedJournalEntriesResponse)
 async def get_all_journal_entries(
+    page: int = 1,
+    page_size: int = 10,
     user_data: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get all journal entries for the current user"""
+    """Get paginated journal entries for the current user
+
+    Args:
+        page: Page number (starts from 1)
+        page_size: Number of entries per page (max 100)
+    """
+    # Validate pagination parameters
+    if page < 1:
+        raise HTTPException(status_code=400, detail="Page number must be >= 1")
+    if page_size < 1 or page_size > 100:
+        raise HTTPException(
+            status_code=400, detail="Page size must be between 1 and 100"
+        )
+
     # Get current user
     user = get_user_by_firebase_uid(db, user_data["uid"])
 
-    entries = db.query(JournalEntry).filter(JournalEntry.user_id == user.id).order_by(JournalEntry.date.desc()).all()
-    return entries
+    # Calculate offset
+    offset = (page - 1) * page_size
+
+    # Get total count for pagination metadata
+    total_items = db.query(JournalEntry).filter(JournalEntry.user_id == user.id).count()
+
+    # Get paginated entries
+    entries = (
+        db.query(JournalEntry)
+        .filter(JournalEntry.user_id == user.id)
+        .order_by(JournalEntry.date.desc())
+        .offset(offset)
+        .limit(page_size)
+        .all()
+    )
+
+    # Calculate pagination metadata
+    total_pages = (total_items + page_size - 1) // page_size  # Ceiling division
+    has_next = page < total_pages
+    has_previous = page > 1
+
+    pagination_metadata = PaginationMetadata(
+        current_page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+        total_items=total_items,
+        has_next=has_next,
+        has_previous=has_previous,
+    )
+
+    return PaginatedJournalEntriesResponse(
+        entries=[JournalEntryResponse.model_validate(entry) for entry in entries],
+        pagination=pagination_metadata,
+    )
 
 
 @app.get("/emotions")
 async def get_available_emotions():
     """Get list of available emotions"""
-    return list(EMOTION_QUESTIONS.keys())
+    return [emotion.value for emotion in Emotion]
 
 
 if __name__ == "__main__":

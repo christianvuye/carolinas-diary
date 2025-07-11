@@ -15,7 +15,7 @@ allow-licenses:
 
 # Skip these GitHub Advisory Database IDs during detection
 # Add specific GHSAs here if needed for essential security tools
-allow-ghsas:
+allow-ghsas: []
   # Placeholder - add specific GHSAs if needed
   # - GHSA-abcd-1234-5679
 

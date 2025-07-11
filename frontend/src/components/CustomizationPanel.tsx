@@ -1,4 +1,4 @@
-import { Palette, Type, Sticker } from 'lucide-react';
+import { Palette, Sticker, Type } from 'lucide-react';
 import React, { useState } from 'react';
 import './CustomizationPanel.css';
 
@@ -100,10 +100,29 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
   ];
 
   const handleStickerAdd = (stickerType: string) => {
+    // Use crypto.getRandomValues() for better randomness (best practice)
+    // Fall back to Math.random() if crypto is not available
+    let x, y;
+
+    try {
+      if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+        const randomArray = new Uint32Array(2);
+        window.crypto.getRandomValues(randomArray);
+        x = (randomArray[0]! / 0xffffffff) * 300;
+        y = (randomArray[1]! / 0xffffffff) * 300;
+      } else {
+        throw new Error('crypto not available');
+      }
+    } catch {
+      // Fallback for older browsers or if crypto fails
+      x = Math.random() * 300;
+      y = Math.random() * 300;
+    }
+
     const newSticker = {
       id: Date.now().toString(),
       type: stickerType,
-      position: { x: Math.random() * 300, y: Math.random() * 300 },
+      position: { x, y },
     };
 
     const newStickers = [...visualSettings.stickers, newSticker];

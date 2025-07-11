@@ -11,10 +11,11 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/favicon.ico',
   '/logo192.png',
-  '/logo512.png'
+  '/logo512.png',
 ];
 
 // Install event - cache static assets
+
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   event.waitUntil(
@@ -34,6 +35,7 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event - clean up old caches
+//Loading..
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
   event.waitUntil(
@@ -58,17 +60,17 @@ self.addEventListener('activate', (event) => {
 // Fetch event - serve cached content
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
+
   // Skip non-GET requests
   if (request.method !== 'GET') {
     return;
   }
-  
+
   // Skip external requests
   if (!request.url.startsWith(self.location.origin)) {
     return;
   }
-  
+
   event.respondWith(
     caches.match(request)
       .then((cachedResponse) => {
@@ -77,7 +79,7 @@ self.addEventListener('fetch', (event) => {
           console.log('Service Worker: Serving from cache', request.url);
           return cachedResponse;
         }
-        
+
         // Fetch from network and cache dynamic content
         return fetch(request)
           .then((response) => {
@@ -85,27 +87,27 @@ self.addEventListener('fetch', (event) => {
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
-            
+
             // Clone the response
             const responseToCache = response.clone();
-            
+
             // Cache dynamic content
             caches.open(DYNAMIC_CACHE)
               .then((cache) => {
                 console.log('Service Worker: Caching dynamic content', request.url);
                 cache.put(request, responseToCache);
               });
-            
+
             return response;
           })
           .catch((error) => {
             console.log('Service Worker: Fetch failed, serving offline page', error);
-            
+
             // Return a custom offline page for navigation requests
             if (request.destination === 'document') {
               return caches.match('/');
             }
-            
+
             // For other requests, return a simple response
             return new Response('Offline content not available', {
               status: 503,
@@ -122,7 +124,7 @@ self.addEventListener('fetch', (event) => {
 // Background sync for saving journal entries when back online
 self.addEventListener('sync', (event) => {
   console.log('Service Worker: Background sync triggered', event.tag);
-  
+
   if (event.tag === 'journal-sync') {
     event.waitUntil(syncJournalEntries());
   }
@@ -132,7 +134,7 @@ self.addEventListener('sync', (event) => {
 async function syncJournalEntries() {
   try {
     console.log('Service Worker: Syncing journal entries...');
-    
+
     // This would typically sync with your backend
     // For now, we'll just log that sync would happen
     const allClients = await self.clients.matchAll();
@@ -150,7 +152,7 @@ async function syncJournalEntries() {
 // Push notifications (for future features)
 self.addEventListener('push', (event) => {
   console.log('Service Worker: Push message received');
-  
+
   const options = {
     body: event.data ? event.data.text() : 'New notification from Carolina\'s Diary',
     icon: '/logo192.png',
@@ -173,7 +175,7 @@ self.addEventListener('push', (event) => {
       }
     ]
   };
-  
+
   event.waitUntil(
     self.registration.showNotification('Carolina\'s Diary', options)
   );
@@ -182,9 +184,9 @@ self.addEventListener('push', (event) => {
 // Notification click handling
 self.addEventListener('notificationclick', (event) => {
   console.log('Service Worker: Notification click received');
-  
+
   event.notification.close();
-  
+
   if (event.action === 'explore') {
     event.waitUntil(
       self.clients.openWindow('/')

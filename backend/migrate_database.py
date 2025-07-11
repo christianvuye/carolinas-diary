@@ -10,6 +10,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+# flake8: noqa: E501
+
 
 def backup_database(db_path):
     """Create a backup of the current database"""
@@ -136,7 +138,7 @@ def migrate_database(db_path):
             # Copy data from old table, assigning to default user
             cursor.execute(
                 """
-                INSERT INTO journal_entries_new 
+                INSERT INTO journal_entries_new
                 (id, user_id, date, gratitude_answers, emotion, emotion_answers, custom_text, visual_settings, created_at, updated_at)
                 SELECT id, ?, date, gratitude_answers, emotion, emotion_answers, custom_text, visual_settings, created_at, updated_at
                 FROM journal_entries
@@ -175,7 +177,7 @@ def migrate_database(db_path):
 
         return True
 
-    except Exception as e:
+    except (sqlite3.Error, OSError, ValueError) as e:
         print(f"Migration failed: {e}")
         print(f"Restoring from backup: {backup_path}")
 

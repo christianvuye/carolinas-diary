@@ -4,10 +4,11 @@ Database initialization script for Carolina's Diary
 Creates all tables and populates with initial data
 """
 
-from sqlalchemy.orm import sessionmaker
+# flake8: noqa: E501
 
 from database import Base, engine
 from models import EmotionQuestion, GratitudeQuestion, Quote
+from sqlalchemy.orm import sessionmaker
 
 # Create database session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -53,22 +54,19 @@ def init_database():
             # Anxiety
             (
                 "anxiety",
-                (
-                    "What specific thoughts or situations triggered your "
-                    "anxiety today?"
-                ),
+                "What specific thoughts or situations triggered your anxiety today?",
             ),
             (
                 "anxiety",
-                ("What physical sensations did you notice when feeling anxious?"),
+                "What physical sensations did you notice when feeling anxious?",
             ),
             (
                 "anxiety",
-                ("What coping strategies helped you manage your " "anxiety?"),
+                "What coping strategies helped you manage your anxiety?",
             ),
             (
                 "anxiety",
-                ("What would you tell a friend experiencing similar " "anxiety?"),
+                "What would you tell a friend experiencing similar anxiety?",
             ),
             # Sadness
             (
@@ -85,12 +83,12 @@ def init_database():
             ),
             (
                 "sadness",
-                ("What support do you need during this difficult " "time?"),
+                "What support do you need during this difficult time?",
             ),
             # Stress
             (
                 "stress",
-                ("What are the main sources of stress in your life " "right now?"),
+                "What are the main sources of stress in your life right now?",
             ),
             (
                 "stress",
@@ -147,15 +145,12 @@ def init_database():
         quotes = [
             (
                 "anxiety",
-                (
-                    "You are braver than you believe, stronger than you seem, "
-                    "and smarter than you think."
-                ),
+                "You are braver than you believe, stronger than you seem, and smarter than you think.",  # noqa: E501
                 "A.A. Milne",
             ),
             (
                 "anxiety",
-                ("Nothing can bring you peace " "but yourself."),
+                "Nothing can bring you peace but yourself.",
                 "Ralph Waldo Emerson",
             ),
             (
@@ -170,10 +165,7 @@ def init_database():
             ),
             (
                 "stress",
-                (
-                    "You have been assigned this mountain to show others it "
-                    "can be moved."
-                ),
+                "You have been assigned this mountain to show others it can be moved.",
                 "Mel Robbins",
             ),
             (
@@ -183,10 +175,7 @@ def init_database():
             ),
             (
                 "happiness",
-                (
-                    "Happiness is not something ready made. It comes from "
-                    "your own actions."
-                ),
+                "Happiness is not something ready made. It comes from your own actions.",
                 "Dalai Lama",
             ),
             (
@@ -196,19 +185,12 @@ def init_database():
             ),
             (
                 "anger",
-                (
-                    "For every minute you are angry you lose sixty seconds "
-                    "of happiness."
-                ),
+                "For every minute you are angry you lose sixty seconds of happiness.",
                 "Ralph Waldo Emerson",
             ),
             (
                 "anger",
-                (
-                    "Anger is an acid that can do more harm to the vessel "
-                    "in which it is stored than to anything on which it is "
-                    "poured."
-                ),
+                "Anger is an acid that can do more harm to the vessel in which it is stored than to anything on which it is poured.",  # noqa: E501
                 "Mark Twain",
             ),
         ]

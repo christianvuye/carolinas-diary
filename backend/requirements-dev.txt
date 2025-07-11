@@ -5,12 +5,12 @@ pytest-asyncio==0.21.1
 pytest-mock==3.12.0
 
 # Code quality tools
-black==23.12.1
+black>=24.3.0
 flake8==6.1.0
 mypy==1.8.0
 isort==5.13.2
-bandit==1.7.5
-safety==3.0.1
+bandit>=1.7.7
+safety>=3.6.0
 
 # Pre-commit hooks
 pre-commit==3.6.0
@@ -19,4 +19,4 @@ pre-commit==3.6.0
 mypy-extensions==1.0.0
 typing-extensions>=4.8.0
 coverage[toml]==7.3.2
-mypy-baseline==0.5.1 
+mypy-baseline==0.5.1

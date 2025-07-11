@@ -186,42 +186,41 @@
     align-items: center !important;
     padding: 0 1.5rem;
   }
-  
+
   .header-right {
     flex-direction: column !important;
     gap: 0.75rem;
     width: 100%;
     align-items: center !important;
   }
-  
+
   .header-nav {
     justify-content: center !important;
     order: 1;
   }
-  
+
   .header-nav .nav-btn {
     padding: 0.65rem 1.25rem;
     font-size: 0.9rem;
     min-width: fit-content;
   }
-  
+
   .header-date {
     font-size: 0.9rem;
     min-width: auto !important;
     text-align: center;
     order: 2;
   }
-  
+
   .user-menu {
     order: 3;
     justify-content: center !important;
   }
-  
+
   .user-name {
     max-width: 120px;
   }
 }
-
 
 @media (max-width: 768px) {
   .header-content {
@@ -230,29 +229,29 @@
     align-items: center;
     padding: 0 1rem;
   }
-  
+
   .header-right {
     flex-direction: column;
     gap: 0.75rem;
     width: 100%;
     align-items: center;
   }
-  
+
   .header-nav {
     justify-content: center;
   }
-  
+
   .header-nav .nav-btn {
     justify-content: center;
     min-width: 120px;
     max-width: 180px;
     flex: 0 0 auto;
   }
-  
+
   .user-menu {
     justify-content: center;
   }
-  
+
   .header-date {
     text-align: center;
     min-width: auto;
@@ -263,33 +262,33 @@
   .header-title h1 {
     font-size: 1.5rem;
   }
-  
+
   .heart-icon {
     width: 1.5rem;
     height: 1.5rem;
   }
-  
+
   .header-nav {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .header-nav .nav-btn {
     min-width: 140px;
     max-width: 200px;
     width: auto;
     flex: 0 0 auto;
   }
-  
+
   .header-date {
     font-size: 0.85rem;
     padding: 0.4rem 0.8rem;
   }
-  
+
   .user-info {
     padding: 0.4rem 0.8rem;
   }
-  
+
   .logout-button {
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;

@@ -98,7 +98,8 @@
   box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
 }
 
-.customize-btn, .save-btn {
+.customize-btn,
+.save-btn {
   padding: 0.8rem 1.5rem;
   border: none;
   border-radius: 25px;
@@ -138,9 +139,15 @@
 }
 
 @keyframes saveSuccess {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .save-btn.saving {
@@ -149,8 +156,13 @@
 }
 
 @keyframes savePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .journal-content {
@@ -210,26 +222,27 @@
     margin: 1rem;
     padding: 1.5rem;
   }
-  
+
   .journal-header {
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .journal-actions {
     width: 100%;
     justify-content: center;
   }
-  
+
   /* Enhanced touch targets for mobile */
-  .customize-btn, .save-btn {
+  .customize-btn,
+  .save-btn {
     padding: 1rem 2rem;
     font-size: 1rem;
     min-height: 44px;
     min-width: 120px;
   }
-  
+
   .continue-editing-btn,
   .new-entry-btn {
     padding: 1rem 2rem;
@@ -237,13 +250,13 @@
     min-height: 44px;
     min-width: 140px;
   }
-  
+
   .post-save-buttons {
     flex-direction: column;
     gap: 0.75rem;
     width: 100%;
   }
-  
+
   .continue-editing-btn,
   .new-entry-btn {
     width: 100%;
@@ -256,30 +269,31 @@
     margin: 0.5rem;
     padding: 1rem;
   }
-  
+
   .journal-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .custom-text-section {
     padding: 1rem;
   }
-  
+
   .custom-text-area {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 1rem;
     min-height: 120px;
   }
-  
+
   /* Even larger touch targets for small screens */
-  .customize-btn, .save-btn {
+  .customize-btn,
+  .save-btn {
     padding: 1.2rem 2.5rem;
     font-size: 1.1rem;
     min-height: 48px;
     width: 100%;
     max-width: 300px;
   }
-  
+
   .journal-actions {
     flex-direction: column;
     gap: 0.75rem;

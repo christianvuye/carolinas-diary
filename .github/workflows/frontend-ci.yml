@@ -14,7 +14,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -39,9 +39,9 @@ jobs:
         working-directory: ./frontend
         run: npm run format:check
 
-      - name: Run ESLin
+      - name: Run ESLint
         working-directory: ./frontend
-        run: npm run lin
+        run: npm run lint
 
       - name: Run TypeScript type check
         working-directory: ./frontend
@@ -115,7 +115,7 @@ jobs:
           npx serve -s build -l 3000 &
           SERVER_PID=$!
 
-          # Wait for server to star
+          # Wait for server to start
           npx wait-on http://localhost:3000
 
           # Run Lighthouse CI
@@ -127,7 +127,7 @@ jobs:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   security:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -144,7 +144,7 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run security audi
+      - name: Run security audit
         working-directory: ./frontend
         run: npm audit --audit-level=moderate
 
@@ -168,7 +168,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   code-quality:
-    runs-on: ubuntu-lates
+    runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
     steps:
@@ -186,19 +186,19 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Generate comprehensive type coverage repor
+      - name: Generate comprehensive type coverage report
         working-directory: ./frontend
         run: |
           # Generate HTML report for artifacts
-          npm run type-coverage:repor
+          npm run type-coverage:report
 
           # Get type coverage percentage using the actual type-coverage tool
           echo "## Type Coverage Report" >> $GITHUB_STEP_SUMMARY
 
-          # Run type-coverage and capture the outpu
+          # Run type-coverage and capture the output
           TYPE_COVERAGE_OUTPUT=$(npm run type-coverage --silent 2>&1 || echo "Type coverage check failed")
 
-          # Extract the coverage percentage from the outpu
+          # Extract the coverage percentage from the output
           if echo "$TYPE_COVERAGE_OUTPUT" | grep -q "type coverage is"; then
             COVERAGE_PERCENTAGE=$(echo "$TYPE_COVERAGE_OUTPUT" | grep -o "type coverage is [0-9.]*%" | grep -o "[0-9.]*")
             echo "**Type Coverage: ${COVERAGE_PERCENTAGE}%**" >> $GITHUB_STEP_SUMMARY
@@ -217,11 +217,11 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: Upload type coverage HTML repor
+      - name: Upload type coverage HTML report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: type-coverage-html-repor
+          name: type-coverage-html-report
           path: frontend/coverage-ts/
           retention-days: 7
 
@@ -258,5 +258,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: commen
+              body: comment
             });

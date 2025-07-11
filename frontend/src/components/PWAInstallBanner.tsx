@@ -5,6 +5,7 @@ import { usePWA } from '../hooks/usePWA';
 import './PWAInstallBanner.css';
 
 const PWAInstallBanner: React.FC = () => {
+  // Call hooks at the top level, outside of any try-catch
   const { showInstallPrompt, installApp, dismissInstallPrompt } = usePWA();
 
   if (!showInstallPrompt) {
@@ -15,10 +16,19 @@ const PWAInstallBanner: React.FC = () => {
     try {
       const success = await installApp();
       if (success) {
+        // Use console.log for development, could be replaced with proper logging
         console.log('PWA installed successfully');
       }
     } catch (error) {
       console.error('PWA installation failed:', error);
+    }
+  };
+
+  const handleDismiss = () => {
+    try {
+      dismissInstallPrompt();
+    } catch (error) {
+      console.error('Error dismissing install prompt:', error);
     }
   };
 
@@ -43,7 +53,7 @@ const PWAInstallBanner: React.FC = () => {
           </button>
           <button
             className="pwa-dismiss-btn"
-            onClick={dismissInstallPrompt}
+            onClick={handleDismiss}
             aria-label="Dismiss install prompt"
           >
             <X size={18} />

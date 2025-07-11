@@ -2,8 +2,27 @@
 
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
+from enum import Enum
 
 from pydantic import BaseModel
+
+
+class Emotion(str, Enum):
+    """Valid emotions for journaling prompts and quotes."""
+
+    ANXIETY = "anxiety"
+    SADNESS = "sadness"
+    STRESS = "stress"
+    EXCITEMENT = "excitement"
+    ANGER = "anger"
+    HAPPINESS = "happiness"
+    JOY = "joy"
+    FEELING_OVERWHELMED = "feeling overwhelmed"
+    JEALOUSY = "jealousy"
+    FATIGUE = "fatigue"
+    INSECURITY = "insecurity"
+    DOUBT = "doubt"
+    CATASTROPHIC_THINKING = "catastrophic thinking"
 
 
 class UserCreate(BaseModel):
@@ -49,7 +68,7 @@ class JournalEntryCreate(BaseModel):
     """Schema for creating a new journal entry."""
 
     gratitude_answers: List[str] = []
-    emotion: Optional[str] = None
+    emotion: Optional[Emotion] = None
     emotion_answers: List[str] = []
     custom_text: Optional[str] = None
     visual_settings: Optional[Dict[str, Any]] = None
@@ -62,7 +81,7 @@ class JournalEntryResponse(BaseModel):
     user_id: int
     date: date
     gratitude_answers: List[str]
-    emotion: Optional[str]
+    emotion: Optional[Emotion]
     emotion_answers: List[str]
     custom_text: Optional[str]
     visual_settings: Optional[Dict[str, Any]]
@@ -87,3 +106,26 @@ class QuoteResponse(BaseModel):
 
     quote: str
     author: str
+
+
+class PaginationMetadata(BaseModel):
+    """Schema for pagination metadata."""
+
+    current_page: int
+    page_size: int
+    total_pages: int
+    total_items: int
+    has_next: bool
+    has_previous: bool
+
+
+class PaginatedJournalEntriesResponse(BaseModel):
+    """Schema for paginated journal entries response."""
+
+    entries: List[JournalEntryResponse]
+    pagination: PaginationMetadata
+
+    class Config:
+        """Pydantic configuration for ORM model compatibility."""
+
+        from_attributes = True

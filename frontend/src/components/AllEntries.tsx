@@ -11,17 +11,17 @@ const entriesCache = new Map<string, JournalEntryFirestore[]>();
 
 // Function to refresh cache when entries are updated
 /**
-* Clears the journal entries cache for a specific user and triggers a UI update.
-* @example
-* refreshEntriesCache('user-123')
-* // Cache for user-123 is removed, and a UI update is triggered.
-* @param {string} userId - The ID of the user whose entries cache should be cleared.
-* @returns {void} No return value.
-* @description
-*   - Deletes the user's cached journal entries from the `entriesCache` Map.
-*   - Dispatches a `CustomEvent` named 'entriesUpdated' to notify the system of the cache update.
-*   - Intended to prompt a UI refresh wherever this cache influences the display of user's data.
-*/
+ * Clears the journal entries cache for a specific user and triggers a UI update.
+ * @example
+ * refreshEntriesCache('user-123')
+ * // Cache for user-123 is removed, and a UI update is triggered.
+ * @param {string} userId - The ID of the user whose entries cache should be cleared.
+ * @returns {void} No return value.
+ * @description
+ *   - Deletes the user's cached journal entries from the `entriesCache` Map.
+ *   - Dispatches a `CustomEvent` named 'entriesUpdated' to notify the system of the cache update.
+ *   - Intended to prompt a UI refresh wherever this cache influences the display of user's data.
+ */
 export const refreshEntriesCache = (userId: string) => {
   entriesCache.delete(userId);
   // Trigger a re-render by dispatching a custom event
@@ -60,7 +60,6 @@ const AllEntries: React.FC = () => {
     // Listen for entry updates
     const handleEntriesUpdated = (event: CustomEvent) => {
       if (event.detail.userId === userId) {
-        console.log('Entries updated, refreshing...');
         loadAllEntries(false);
       }
     };
@@ -88,8 +87,6 @@ const AllEntries: React.FC = () => {
     }
 
     try {
-      console.log('Loading entries for user:', userId);
-
       // Try to load from localStorage first for instant loading
       const allEntriesKey = `all_entries_${userId}`;
       const localEntries = localStorage.getItem(allEntriesKey);
@@ -97,23 +94,21 @@ const AllEntries: React.FC = () => {
       if (localEntries && !isBackgroundRefresh) {
         try {
           const parsedEntries = JSON.parse(localEntries);
-          console.log(
-            'Loaded entries from localStorage:',
-            parsedEntries.length
-          );
 
           // Validate and fix entries data structure
-          const validatedEntries = parsedEntries.map((entry: any) => ({
-            ...entry,
-            updatedAt:
-              typeof entry.updatedAt === 'string'
-                ? entry.updatedAt
-                : new Date().toISOString(),
-            createdAt:
-              typeof entry.createdAt === 'string'
-                ? entry.createdAt
-                : new Date().toISOString(),
-          }));
+          const validatedEntries = parsedEntries.map(
+            (entry: Partial<JournalEntryFirestore>) => ({
+              ...entry,
+              updatedAt:
+                typeof entry.updatedAt === 'string'
+                  ? entry.updatedAt
+                  : new Date().toISOString(),
+              createdAt:
+                typeof entry.createdAt === 'string'
+                  ? entry.createdAt
+                  : new Date().toISOString(),
+            })
+          );
 
           setEntries(validatedEntries);
           entriesCache.set(userId, validatedEntries);
@@ -125,7 +120,7 @@ const AllEntries: React.FC = () => {
           }, 100);
           return;
         } catch (error) {
-          console.warn('Error parsing localStorage entries, clearing:', error);
+          // Clear invalid localStorage entries
           localStorage.removeItem(allEntriesKey);
         }
       }
@@ -162,10 +157,6 @@ const AllEntries: React.FC = () => {
         userId,
         50
       );
-      console.log(
-        'Loaded recent entries from Firestore:',
-        recentEntries.length
-      );
 
       if (recentEntries.length > 0) {
         setEntries(recentEntries);
@@ -182,7 +173,6 @@ const AllEntries: React.FC = () => {
       // Then load all entries in the background if needed
       if (recentEntries.length === 50) {
         const allEntries = await firestoreService.getAllJournalEntries(userId);
-        console.log('Loaded all entries from Firestore:', allEntries.length);
         setEntries(allEntries);
         entriesCache.set(userId, allEntries);
         localStorage.setItem(allEntriesKey, JSON.stringify(allEntries));
@@ -362,20 +352,18 @@ const AllEntries: React.FC = () => {
               <div className="entry-content">
                 <div className="entry-full-date">{formatDate(entry.date)}</div>
 
-                {entry.gratitude_answers &&
-                  entry.gratitude_answers.some(answer => answer.trim()) && (
-                    <div className="entry-gratitude">
-                      <Heart size={16} />
-                      <span>
-                        {
-                          entry.gratitude_answers.filter(answer =>
-                            answer.trim()
-                          ).length
-                        }{' '}
-                        gratitude notes
-                      </span>
-                    </div>
-                  )}
+                {entry.gratitude_answers?.some(answer => answer.trim()) && (
+                  <div className="entry-gratitude">
+                    <Heart size={16} />
+                    <span>
+                      {
+                        entry.gratitude_answers.filter(answer => answer.trim())
+                          .length
+                      }{' '}
+                      gratitude notes
+                    </span>
+                  </div>
+                )}
 
                 <div className="entry-preview">
                   {getPreviewText(entry) || 'No content available'}

@@ -57,7 +57,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
     if (!currentUser) return;
 
     try {
-      const dateStr = date.toISOString().split('T')[0]!;
+      const dateStr = date.toISOString().split('T')[0] || date.toISOString();
       const userId = 'dev-user-123'; // For development consistency
 
       // Try to load from localStorage first for instant loading
@@ -92,7 +92,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       // Try to load from Firestore as fallback
       const firestoreEntry = await firestoreService.getJournalEntry(
         userId,
-        dateStr,
+        dateStr
       );
 
       if (firestoreEntry) {
@@ -140,7 +140,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
             },
           });
         } catch (apiError) {
-          console.log('No existing entry found, starting fresh');
+          // No existing entry found, starting fresh
         }
       }
     } catch (error) {
@@ -155,7 +155,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
 
     setIsLoading(true);
     try {
-      const dateStr = date.toISOString().split('T')[0]!;
+      const dateStr = date.toISOString().split('T')[0] || date.toISOString();
       const dataToSave = {
         gratitude_answers: journalData.gratitude_answers || [
           '',
@@ -178,7 +178,6 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
 
       // Use consistent user ID for development
       const userId = 'dev-user-123'; // For development consistency
-      console.log('Saving entry for user:', userId, 'date:', dateStr);
 
       // Save to localStorage immediately for instant performance
       const localStorageKey = `journal_${userId}_${dateStr}`;
@@ -189,16 +188,16 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
           date: dateStr,
           userId,
           savedAt: new Date().toISOString(),
-        }),
+        })
       );
 
       // Update all entries cache in localStorage
       const allEntriesKey = `all_entries_${userId}`;
       const existingEntries = JSON.parse(
-        localStorage.getItem(allEntriesKey) || '[]',
+        localStorage.getItem(allEntriesKey) || '[]'
       );
       const entryIndex = existingEntries.findIndex(
-        (entry: any) => entry.date === dateStr,
+        (entry: { date: string }) => entry.date === dateStr
       );
 
       const now = new Date();
@@ -225,11 +224,8 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       // Try to save to Firestore in background (don't await)
       firestoreService
         .saveJournalEntry(userId, dateStr, dataToSave)
-        .catch(error => {
-          console.log(
-            'Firestore save failed, but localStorage succeeded:',
-            error,
-          );
+        .catch(() => {
+          // Firestore save failed, but localStorage succeeded
         });
 
       // Also try to save to API as backup (don't await)
@@ -238,8 +234,8 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
           ...dataToSave,
           date: dateStr,
         })
-        .catch(error => {
-          console.log('API save failed, but localStorage succeeded:', error);
+        .catch(() => {
+          // API save failed, but localStorage succeeded
         });
 
       setIsSaved(true);
