@@ -2,7 +2,7 @@
     "extends": [
         "react-app",
         "react-app/jest",
-        "@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended",
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
         "plugin:jsx-a11y/recommended",
@@ -35,7 +35,6 @@
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-empty-function": "warn",
         "@typescript-eslint/no-non-null-assertion": "warn",
-        "@typescript-eslint/prefer-const": "error",
         "@typescript-eslint/no-var-requires": "error",
         "react/react-in-jsx-scope": "off",
         "react/prop-types": "off",
@@ -67,7 +66,6 @@
         "no-debugger": "error",
         "no-duplicate-imports": "error",
         "no-unused-vars": "off",
-        "prefer-const": "error",
         "no-var": "error",
         "object-shorthand": "error",
         "prefer-arrow-callback": "error"

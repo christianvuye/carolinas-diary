@@ -63,7 +63,7 @@ jobs:
       - name: Run pre-commit hooks
         uses: pre-commit/action@v3.0.0
         with:
-          extra_args: --all-files
+          extra_args: --all-files --config frontend/.pre-commit-config.yaml
 
       - name: Run tests
         working-directory: ./frontend
@@ -185,10 +185,41 @@ jobs:
       - name: Generate comprehensive type coverage report
         working-directory: ./frontend
         run: |
+          # Generate HTML report for artifacts
           npm run type-coverage:report
+          
+          # Get type coverage percentage using the actual type-coverage tool
           echo "## Type Coverage Report" >> $GITHUB_STEP_SUMMARY
-          cat coverage-ts/lcov.info | grep -E "^(SF|LF|LH)" | awk 'BEGIN {total=0; covered=0} /^LF/ {total+=$2} /^LH/ {covered+=$2} END {if(total>0) printf "**Type Coverage: %.1f%%** (%d/%d lines)\n", (covered/total)*100, covered, total}' >> $GITHUB_STEP_SUMMARY
+          
+          # Run type-coverage and capture the output
+          TYPE_COVERAGE_OUTPUT=$(npm run type-coverage --silent 2>&1 || echo "Type coverage check failed")
+          
+          # Extract the coverage percentage from the output
+          if echo "$TYPE_COVERAGE_OUTPUT" | grep -q "type coverage is"; then
+            COVERAGE_PERCENTAGE=$(echo "$TYPE_COVERAGE_OUTPUT" | grep -o "type coverage is [0-9.]*%" | grep -o "[0-9.]*")
+            echo "**Type Coverage: ${COVERAGE_PERCENTAGE}%**" >> $GITHUB_STEP_SUMMARY
+            
+            # Extract uncovered types count if available
+            if echo "$TYPE_COVERAGE_OUTPUT" | grep -q "uncovered type"; then
+              UNCOVERED_COUNT=$(echo "$TYPE_COVERAGE_OUTPUT" | grep -o "[0-9]* uncovered type" | grep -o "[0-9]*")
+              echo "- Uncovered types: $UNCOVERED_COUNT" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            # Add detailed report notice
+            echo "- Detailed HTML report available in artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Type Coverage: Could not determine coverage percentage**" >> $GITHUB_STEP_SUMMARY
+            echo "- Raw output: $TYPE_COVERAGE_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          fi
         continue-on-error: true
+
+      - name: Upload type coverage HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: type-coverage-html-report
+          path: frontend/coverage-ts/
+          retention-days: 7
 
       - name: Comment PR with reports
         uses: actions/github-script@v7

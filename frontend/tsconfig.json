@@ -31,8 +31,7 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     // Import/export strictness
-    "verbatimModuleSyntax": false,
-    "preserveValueImports": false,
+    // verbatimModuleSyntax and preserveValueImports require TypeScript 5.0+
     // Additional helpful options
     "removeComments": false,
     "incremental": true,
