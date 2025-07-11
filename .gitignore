@@ -87,3 +87,9 @@ Thumbs.db
 .tmp/
 .temp/
 screenshots_temporary/
+
+# Claude Code configuration
+.claude.json
+
+# Landing page (temporary exclusion - may be removed when landing page is ready for commit)
+landing/

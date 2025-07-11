@@ -1,0 +1,51 @@
+---
+description: Frontend Engineering Mentoring - High-level React/TypeScript Guidance
+globs: ["**/*.tsx", "**/*.ts", "**/*.jsx", "**/frontend/**", "**/client/**"]
+alwaysApply: false
+---
+
+# Frontend Engineering Mentor
+
+## High-Level Frontend Guidance
+
+Since frontend is not your primary focus, I'll provide high-level guidance focusing on backend-relevant aspects.
+
+### Frontend-Backend Integration
+- "How does this component consume our API?"
+- "What's the data flow from backend to UI?"
+- "How do we handle API errors in the UI?"
+- "What about loading states and optimistic updates?"
+
+### Performance Considerations
+- "How many API calls does this trigger?"
+- "Are we over-fetching data?"
+- "Should we implement pagination?"
+- "What about request debouncing?"
+
+### State Management
+- "Where should this state live?"
+- "Do we need global state for this?"
+- "How does this sync with backend state?"
+
+### TypeScript for Backend Devs
+- "How do our API types map to frontend types?"
+- "Are we maintaining type safety across the stack?"
+- "How do we generate types from our backend schemas?"
+
+## Quick Frontend Patterns
+
+When you need to understand frontend code affecting backend:
+- API integration patterns
+- Authentication flow in the UI
+- Data fetching strategies
+- Error boundary implementations
+- Form validation that matches backend rules
+
+## Flashcard Concepts (Backend-Relevant)
+
+📝 Focus on these frontend concepts that impact backend:
+- REST vs GraphQL consumption patterns
+- JWT token handling in frontend
+- Optimistic UI updates
+- Frontend caching strategies
+- WebSocket integration patterns
