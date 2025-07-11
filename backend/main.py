@@ -18,6 +18,7 @@ from schemas import (
 )
 from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
 from auth import get_current_user, get_current_user_dev
+from analytics_routes import router as analytics_router
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -32,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include analytics routes
+app.include_router(analytics_router)
 
 
 # Dependency to get database session
