@@ -18,6 +18,7 @@ from schemas import (
 )
 from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
 from auth import get_current_user, get_current_user_dev
+from database_monitoring import DatabaseMonitor
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -294,6 +295,67 @@ async def get_all_journal_entries(
 async def get_available_emotions():
     """Get list of available emotions"""
     return list(EMOTION_QUESTIONS.keys())
+
+
+# Database Monitoring Endpoints
+monitor = DatabaseMonitor()
+
+
+@app.get("/monitoring/database-size")
+async def get_database_size():
+    """Get the total size of the database file"""
+    return monitor.get_database_size()
+
+
+@app.get("/monitoring/table-sizes")
+async def get_table_sizes(db: Session = Depends(get_db)):
+    """Get the size of each table in the database"""
+    return monitor.get_table_sizes(db)
+
+
+@app.get("/monitoring/detailed-table-info")
+async def get_detailed_table_info(db: Session = Depends(get_db)):
+    """Get detailed information about each table"""
+    return monitor.get_detailed_table_info(db)
+
+
+@app.get("/monitoring/system-metrics")
+async def get_system_metrics():
+    """Get system-level metrics (disk, memory, CPU)"""
+    return monitor.get_system_metrics()
+
+
+@app.get("/monitoring/growth-metrics")
+async def get_growth_metrics(db: Session = Depends(get_db)):
+    """Get database growth metrics over time"""
+    return monitor.get_growth_metrics(db)
+
+
+@app.get("/monitoring/database-health")
+async def get_database_health(db: Session = Depends(get_db)):
+    """Get overall database health metrics"""
+    return monitor.get_database_health(db)
+
+
+@app.get("/monitoring/performance-metrics")
+async def get_performance_metrics(db: Session = Depends(get_db)):
+    """Get database performance metrics"""
+    return monitor.get_performance_metrics(db)
+
+
+@app.get("/monitoring/comprehensive-report")
+async def get_comprehensive_monitoring_report(db: Session = Depends(get_db)):
+    """Get a comprehensive monitoring report with all metrics"""
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "database_size": monitor.get_database_size(),
+        "table_sizes": monitor.get_table_sizes(db),
+        "detailed_table_info": monitor.get_detailed_table_info(db),
+        "system_metrics": monitor.get_system_metrics(),
+        "growth_metrics": monitor.get_growth_metrics(db),
+        "database_health": monitor.get_database_health(db),
+        "performance_metrics": monitor.get_performance_metrics(db)
+    }
 
 
 if __name__ == "__main__":
