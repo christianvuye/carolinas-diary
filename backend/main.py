@@ -18,6 +18,7 @@ from schemas import (
 )
 from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
 from auth import get_current_user, get_current_user_dev
+from analytics import analytics_service
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -108,6 +109,8 @@ async def register_user(
     existing_user = db.query(User).filter(User.firebase_uid == user_data["uid"]).first()
 
     if existing_user:
+        # Track existing user login
+        analytics_service.track_user_activity(existing_user, db)
         return existing_user
 
     new_user = User(
@@ -121,6 +124,9 @@ async def register_user(
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # Track new user registration
+    analytics_service.track_user_registration(new_user)
 
     return new_user
 
@@ -225,6 +231,10 @@ async def create_journal_entry(
         existing_entry.updated_at = datetime.now()
         db.commit()
         db.refresh(existing_entry)
+        
+        # Track entry update
+        analytics_service.track_journal_entry_updated(existing_entry, user)
+        
         return existing_entry
     else:
         # Create new entry
@@ -240,6 +250,10 @@ async def create_journal_entry(
         db.add(db_entry)
         db.commit()
         db.refresh(db_entry)
+        
+        # Track new entry creation
+        analytics_service.track_journal_entry_created(db_entry, user)
+        
         return db_entry
 
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { Heart } from 'lucide-react';
+import { useAnalytics } from '../hooks/useAnalytics';
 import './GratitudeSection.css';
 
 interface GratitudeSectionProps {
@@ -9,6 +10,7 @@ interface GratitudeSectionProps {
 }
 
 const GratitudeSection: React.FC<GratitudeSectionProps> = ({ answers, onUpdateAnswers }) => {
+  const analytics = useAnalytics();
   const [questions, setQuestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,6 +41,11 @@ const GratitudeSection: React.FC<GratitudeSectionProps> = ({ answers, onUpdateAn
     const newAnswers = [...(answers || ['', '', '', '', ''])];
     newAnswers[index] = value;
     onUpdateAnswers(newAnswers);
+    
+    // Track gratitude answer
+    if (value.trim().length > 0) {
+      analytics.trackGratitudeAnswered(index, value.length);
+    }
   };
 
   if (isLoading) {
