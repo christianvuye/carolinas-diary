@@ -4,6 +4,9 @@ from firebase_admin import auth, initialize_app, credentials
 import firebase_admin
 from typing import Optional
 import os
+import threading
+import time
+import uuid
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
@@ -39,6 +42,35 @@ class FirebaseAuth:
     def __init__(self):
         self.security = HTTPBearer()
         self.development_mode = not bool(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
+        self._dev_sessions = {}  # Store development user sessions
+        self._session_lock = threading.Lock()  # Thread-safe session management
+
+    def _get_or_create_dev_session(self, session_id: str) -> dict:
+        """Get or create a consistent development session"""
+        with self._session_lock:
+            if session_id not in self._dev_sessions:
+                # Create a new consistent session
+                self._dev_sessions[session_id] = {
+                    "uid": f"dev-user-{uuid.uuid4().hex[:8]}",
+                    "email": "developer@example.com",
+                    "email_verified": True,
+                    "name": "Developer",
+                    "picture": None,
+                    "firebase_claims": {"uid": f"dev-user-{uuid.uuid4().hex[:8]}"},
+                    "created_at": time.time()
+                }
+            return self._dev_sessions[session_id]
+
+    def _cleanup_old_sessions(self):
+        """Clean up sessions older than 24 hours"""
+        current_time = time.time()
+        with self._session_lock:
+            expired_sessions = [
+                session_id for session_id, session_data in self._dev_sessions.items()
+                if current_time - session_data.get("created_at", 0) > 86400  # 24 hours
+            ]
+            for session_id in expired_sessions:
+                del self._dev_sessions[session_id]
 
     async def get_current_user(
         self, credentials: HTTPAuthorizationCredentials = Depends(security)
@@ -123,7 +155,7 @@ async def get_current_user(
     return await firebase_auth.get_current_user(credentials)
 
 
-# Development-friendly dependency
+# Development-friendly dependency with session management
 async def get_current_user_dev(
     request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
@@ -132,15 +164,19 @@ async def get_current_user_dev(
     Development-friendly dependency that doesn't require auth in dev mode
     """
     if firebase_auth.development_mode:
-        print("Running in development mode - bypassing Firebase auth")
-        return {
-            "uid": "dev-user-123",
-            "email": "developer@example.com",
-            "email_verified": True,
-            "name": "Developer",
-            "picture": None,
-            "firebase_claims": {"uid": "dev-user-123"},
-        }
+        # Clean up old sessions periodically
+        firebase_auth._cleanup_old_sessions()
+        
+        # Get session ID from request headers or create new one
+        session_id = request.headers.get("X-Session-ID")
+        if not session_id:
+            session_id = str(uuid.uuid4())
+        
+        # Get or create consistent session
+        session_data = firebase_auth._get_or_create_dev_session(session_id)
+        
+        print(f"Running in development mode - using session: {session_id}")
+        return session_data
     
     if not credentials:
         raise HTTPException(status_code=401, detail="No credentials provided")
@@ -153,16 +189,16 @@ async def get_current_user_optional(request: Request) -> Optional[dict]:
     """
     Optional authentication - returns None if no token provided
     """
-    # Development mode: return mock user
+    # Development mode: return mock user with session management
     if firebase_auth.development_mode:
-        return {
-            "uid": "dev-user-123",
-            "email": "developer@example.com",
-            "email_verified": True,
-            "name": "Developer",
-            "picture": None,
-            "firebase_claims": {"uid": "dev-user-123"},
-        }
+        firebase_auth._cleanup_old_sessions()
+        
+        session_id = request.headers.get("X-Session-ID")
+        if not session_id:
+            session_id = str(uuid.uuid4())
+        
+        session_data = firebase_auth._get_or_create_dev_session(session_id)
+        return session_data
     
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):

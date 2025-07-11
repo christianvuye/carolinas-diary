@@ -58,6 +58,9 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       const dateStr = date.toISOString().split('T')[0];
       const userId = 'dev-user-123'; // For development consistency
       
+      // Clean up old localStorage entries (keep only last 30 days)
+      cleanupOldLocalStorageEntries(userId);
+      
       // Try to load from localStorage first for instant loading
       const localStorageKey = `journal_${userId}_${dateStr}`;
       const localEntry = localStorage.getItem(localStorageKey);
@@ -122,6 +125,68 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       console.error('Error loading journal entry:', error);
     } finally {
       setIsInitialized(true);
+    }
+  };
+
+  // Helper function to clean up old localStorage entries
+  const cleanupOldLocalStorageEntries = (userId: string) => {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      // Clean up individual journal entries
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(`journal_${userId}_`)) {
+          const entry = localStorage.getItem(key);
+          if (entry) {
+            try {
+              const parsedEntry = JSON.parse(entry);
+              const entryDate = new Date(parsedEntry.date);
+              if (entryDate < thirtyDaysAgo) {
+                localStorage.removeItem(key);
+              }
+            } catch (e) {
+              // Remove invalid entries
+              localStorage.removeItem(key);
+            }
+          }
+        }
+      }
+      
+      // Clean up all entries cache
+      const allEntriesKey = `all_entries_${userId}`;
+      const allEntries = localStorage.getItem(allEntriesKey);
+      if (allEntries) {
+        try {
+          const entries = JSON.parse(allEntries);
+          const filteredEntries = entries.filter((entry: any) => {
+            const entryDate = new Date(entry.date);
+            return entryDate >= thirtyDaysAgo;
+          });
+          localStorage.setItem(allEntriesKey, JSON.stringify(filteredEntries));
+        } catch (e) {
+          localStorage.removeItem(allEntriesKey);
+        }
+      }
+      
+      // Check localStorage size and clean if too large (>5MB)
+      const totalSize = new Blob([localStorage.getItem('') || '']).size;
+      if (totalSize > 5 * 1024 * 1024) {
+        // Remove oldest entries if storage is too large
+        const keys = Object.keys(localStorage).filter(key => key.startsWith(`journal_${userId}_`));
+        keys.sort((a, b) => {
+          const aDate = new Date(a.split('_').pop() || '');
+          const bDate = new Date(b.split('_').pop() || '');
+          return aDate.getTime() - bDate.getTime();
+        });
+        
+        // Remove oldest 20% of entries
+        const toRemove = Math.ceil(keys.length * 0.2);
+        keys.slice(0, toRemove).forEach(key => localStorage.removeItem(key));
+      }
+    } catch (error) {
+      console.error('Error cleaning up localStorage:', error);
     }
   };
 

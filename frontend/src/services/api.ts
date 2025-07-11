@@ -11,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add authentication token
+// Request interceptor to add authentication token and session ID
 api.interceptors.request.use(
   async (config) => {
     const currentUser = auth.currentUser;
@@ -19,6 +19,18 @@ api.interceptors.request.use(
       const token = await currentUser.getIdToken();
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add session ID for development mode consistency
+    const sessionId = localStorage.getItem('session_id');
+    if (sessionId) {
+      config.headers['X-Session-ID'] = sessionId;
+    } else {
+      // Generate and store session ID if not exists
+      const newSessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('session_id', newSessionId);
+      config.headers['X-Session-ID'] = newSessionId;
+    }
+    
     return config;
   },
   (error) => {
