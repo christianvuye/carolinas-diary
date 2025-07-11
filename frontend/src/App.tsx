@@ -9,6 +9,7 @@ import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import OfflineIndicator from './components/OfflineIndicator';
+import FeedbackWidget from './components/FeedbackWidget';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { apiService } from './services/api';
 
@@ -62,6 +63,7 @@ function App() {
       <Router>
         <PWAInstallBanner />
         <OfflineIndicator />
+        <FeedbackWidget />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
