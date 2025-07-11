@@ -18,6 +18,7 @@ from schemas import (
 )
 from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
 from auth import get_current_user, get_current_user_dev
+from monitoring import performance_monitor
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -32,6 +33,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Performance monitoring middleware
+@app.middleware("http")
+async def performance_monitoring_middleware(request, call_next):
+    return await performance_monitor.monitor_request(request, call_next)
 
 
 # Dependency to get database session
