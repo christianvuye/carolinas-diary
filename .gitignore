@@ -55,8 +55,6 @@ logs
 # Testing artifacts
 *.pdf
 *.md
-TEST_COMPLETE_SETUP.md
-Journal App User Testing Feedback Form.pdf
 
 # IDE and temporary files
 .tmp/
@@ -76,17 +74,11 @@ Journal App User Testing Feedback Form.pdf
 ehthumbs.db
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Temporary files
-.tmp/
-.temp/
+# Screenshots
 screenshots_temporary/
 
 # Claude Code configuration
 .claude.json
+
+# Landing page (temporary exclusion - may be removed when landing page is ready for commit)
+landing/

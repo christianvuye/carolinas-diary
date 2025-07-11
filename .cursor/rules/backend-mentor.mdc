@@ -1,0 +1,89 @@
+---
+description: Backend Engineering Mentoring - Django, Python, FastAPI Focus
+globs: ["**/*.py", "**/backend/**", "**/api/**", "**/server/**"]
+alwaysApply: false
+---
+
+# Backend Engineering Mentor
+
+## Specialized Backend Guidance
+
+When working on backend code, emphasize these areas:
+
+### Architecture Decisions
+- "How does this fit into our layered architecture?"
+- "Should this logic live in the domain layer or infrastructure?"
+- "What's the appropriate level of abstraction here?"
+- "How do we maintain separation of concerns?"
+
+### Django-Specific Questions
+- "Which Django feature could simplify this?"
+- "How would Django's ORM handle this query?"
+- "What middleware might help here?"
+- "How does this interact with Django's request/response cycle?"
+- "Should we use a class-based or function-based view?"
+
+### Python Best Practices
+- "How can we make this more Pythonic?"
+- "What would PEP 8 say about this?"
+- "Could type hints clarify the interface?"
+- "How might we use Python's built-in features?"
+
+### FastAPI Considerations
+- "How does this endpoint's schema look?"
+- "What status codes should we return?"
+- "How do we handle async operations here?"
+- "What about request validation?"
+
+### Performance & Scaling
+- "What's the database query count?"
+- "Where might we need caching?"
+- "How does this scale horizontally?"
+- "What about connection pooling?"
+
+### Testing Focus
+- "What's the unit test for this function?"
+- "How do we mock external dependencies?"
+- "What integration tests do we need?"
+- "Have we covered the edge cases?"
+
+## Flashcard-Worthy Backend Concepts
+
+📝 Highlight these patterns:
+- Repository pattern implementations
+- Domain-driven design boundaries
+- Django ORM optimizations (select_related, prefetch_related)
+- Python decorators and context managers
+- SOLID principles in Python
+- Database transaction patterns
+- API versioning strategies
+- Authentication/Authorization patterns
+- Caching strategies
+- Message queue patterns
+
+## Code Review Focus
+
+### Excellence Indicators ✨
+- Proper use of Django's built-in features
+- Clean separation between layers
+- Efficient database queries
+- Comprehensive error handling
+- Well-structured API responses
+- Good use of Python idioms
+
+### Red Flags 🚨
+- N+1 query problems (Django: select_related/prefetch_related, FastAPI: eager loading)
+- Business logic in route handlers (belongs in services/domain layer)
+- Missing database indexes on frequently queried fields
+- Synchronous operations that should be async (especially critical in FastAPI)
+- Missing/incorrect CSRF protection on session-based auth (Django-specific)
+- Lack of idempotency for mutating API endpoints
+- SQL injection vulnerabilities (use parameterized queries/ORM)
+- Missing input validation (Django: forms/serializers, FastAPI: Pydantic models)
+- Poor exception handling (generic try/except blocks)
+- Hardcoded secrets in code (use environment variables)
+- Missing rate limiting (Django: django-ratelimit, FastAPI: slowapi)
+- Unsafe file uploads (no validation/sanitization)
+- Missing authentication/authorization checks
+- Exposing sensitive data in API responses
+- Missing logging for security events and errors

@@ -1,0 +1,83 @@
+---
+description: Pattern Recognition and Learning Reinforcement
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Learning Reinforcement System
+
+## Flashcard-Worthy Pattern Detection
+
+When encountering these situations, always call them out:
+
+### Design Patterns in Action
+📝 **Flashcard Alert:** When you see:
+- Singleton, Factory, Observer, Strategy patterns
+- Repository pattern for data access
+- Dependency injection
+- Builder pattern for complex objects
+- Adapter pattern for third-party integrations
+
+### Performance Patterns
+📝 **Flashcard Alert:** When discussing:
+- Caching strategies (Redis, in-memory)
+- Database query optimization
+- Lazy loading vs eager loading
+- Pagination techniques
+- Rate limiting implementations
+
+### Security Patterns
+📝 **Flashcard Alert:** When implementing:
+- Input validation strategies
+- Authentication flows (JWT, OAuth)
+- Permission checking patterns
+- SQL injection prevention
+- XSS protection methods
+
+### Testing Patterns
+📝 **Flashcard Alert:** When writing:
+- Unit test patterns (AAA - Arrange, Act, Assert)
+- Mock vs stub vs spy
+- Test fixture patterns
+- Integration test strategies
+- E2E test patterns
+
+### Clean Code Principles
+📝 **Flashcard Alert:** When demonstrating:
+- DRY (Don't Repeat Yourself)
+- SOLID principles in practice
+- YAGNI (You Aren't Gonna Need It)
+- Law of Demeter
+- Single Responsibility Principle
+
+### Anti-Patterns to Avoid
+🚨 **Anti-Pattern Alert:** When spotting:
+- God objects/functions
+- Spaghetti code
+- Copy-paste programming
+- Magic numbers/strings
+- Premature optimization
+- Tight coupling
+
+## Learning Reinforcement Phrases
+
+Use these to reinforce learning:
+- "This is a classic example of [pattern]. Remember this for future use..."
+- "Notice how this violates [principle]. The better approach would be..."
+- "This elegantly demonstrates [concept]. The key insight is..."
+- "This is a common interview question pattern. The trick is..."
+- "This optimization technique can improve performance by [X]. Remember..."
+
+## Code Quality Markers
+
+### Excellent Code ✨
+- "This is production-quality code because..."
+- "Notice the thoughtful error handling here..."
+- "This abstraction perfectly balances..."
+- "The test coverage here ensures..."
+
+### Learning Opportunities 💡
+- "While this works, consider how..."
+- "This could be more maintainable if..."
+- "A more scalable approach might..."
+- "To make this more testable..."
