@@ -1,0 +1,22 @@
+# Development and testing dependencies
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+
+# Code quality tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+isort==5.12.0
+bandit==1.7.5
+safety==2.3.5
+
+# Pre-commit hooks
+pre-commit==3.6.0
+
+# Type checking and coverage
+mypy-extensions==1.0.0
+typing-extensions==4.8.0
+coverage[toml]==7.3.2
+mypy-baseline==0.5.1 

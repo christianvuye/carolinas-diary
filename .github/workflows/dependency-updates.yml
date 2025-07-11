@@ -23,7 +23,7 @@ jobs:
         cache-dependency-path: frontend/package-lock.json
     
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
@@ -37,7 +37,11 @@ jobs:
         npm outdated || true
         
         # Check if package-lock.json changed
-        git diff --name-only | grep package-lock.json && echo "frontend_updated=true" >> $GITHUB_ENV || echo "frontend_updated=false" >> $GITHUB_ENV
+        if git diff --name-only | grep -q package-lock.json; then
+          echo "frontend_updated=true" >> $GITHUB_ENV
+        else
+          echo "frontend_updated=false" >> $GITHUB_ENV
+        fi
     
     - name: Update backend dependencies
       working-directory: ./backend
@@ -54,29 +58,44 @@ jobs:
         pip-compile --upgrade requirements.in
         
         # Check if requirements.txt changed
-        git diff --name-only | grep requirements.txt && echo "backend_updated=true" >> $GITHUB_ENV || echo "backend_updated=false" >> $GITHUB_ENV
+        if git diff --name-only | grep -q requirements.txt; then
+          echo "backend_updated=true" >> $GITHUB_ENV
+        else
+          echo "backend_updated=false" >> $GITHUB_ENV
+        fi
     
     - name: Run tests after updates
-      if: env.frontend_updated == 'true' || env.backend_updated == 'true'
+      if: contains(env.frontend_updated, 'true') || contains(env.backend_updated, 'true')
       run: |
         # Frontend tests
         if [ "${{ env.frontend_updated }}" == "true" ]; then
           cd frontend
           npm ci
           npm test -- --watchAll=false || echo "frontend_tests_failed=true" >> $GITHUB_ENV
+          cd ..
         fi
         
-        # Backend tests (if they exist)
+        # Backend tests
         if [ "${{ env.backend_updated }}" == "true" ]; then
-          cd backend
+          cd "$GITHUB_WORKSPACE/backend"
           pip install -r requirements.txt
-          # Add backend test command here when available
-          # python -m pytest || echo "backend_tests_failed=true" >> $GITHUB_ENV
+          # Install test dependencies if available
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          else
+            pip install pytest
+          fi
+          # Run backend tests if test files exist
+          if find . -name "test_*.py" -o -name "*_test.py" | grep -q .; then
+            python -m pytest || echo "backend_tests_failed=true" >> $GITHUB_ENV
+          else
+            echo "No backend tests found, skipping test validation"
+          fi
         fi
     
     - name: Create Pull Request
-      if: (env.frontend_updated == 'true' || env.backend_updated == 'true') && env.frontend_tests_failed != 'true' && env.backend_tests_failed != 'true'
-      uses: peter-evans/create-pull-request@v5
+      if: (contains(env.frontend_updated, 'true') || contains(env.backend_updated, 'true')) && !contains(env.frontend_tests_failed, 'true') && !contains(env.backend_tests_failed, 'true')
+      uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: 'chore: update dependencies'
@@ -113,12 +132,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Update GitHub Actions
-      uses: renovatebot/github-action@v39.0.0
-      with:
-        configurationFile: .github/renovate.json
         token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Create renovate config if it doesn't exist
@@ -161,6 +174,12 @@ jobs:
           }
           EOF
         fi
+    
+    - name: Update GitHub Actions
+      uses: renovatebot/github-action@v39.0.0
+      with:
+        configurationFile: .github/renovate.json
+        token: ${{ secrets.GITHUB_TOKEN }}
 
   security-advisories:
     runs-on: ubuntu-latest
@@ -185,14 +204,15 @@ jobs:
       run: |
         npm audit --audit-level=high --json > security-audit.json || true
         
-        # Check if there are high or critical vulnerabilities
-        if cat security-audit.json | jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' | grep -v '^0$' > /dev/null; then
+        # Check if there are high or critical vulnerabilities (with safe fallback)
+        VULN_COUNT=$(cat security-audit.json | jq '(.metadata.vulnerabilities.high // 0) + (.metadata.vulnerabilities.critical // 0)' 2>/dev/null || echo "0")
+        if [ "$VULN_COUNT" != "0" ] && [ "$VULN_COUNT" != "null" ]; then
           echo "security_issues_found=true" >> $GITHUB_ENV
-          echo "::warning::Security vulnerabilities found in frontend dependencies"
+          echo "::warning::Security vulnerabilities found in frontend dependencies (count: $VULN_COUNT)"
         fi
     
     - name: Setup Python for backend security check
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
@@ -211,7 +231,7 @@ jobs:
         fi
     
     - name: Create security issue
-      if: env.security_issues_found == 'true' || env.backend_security_issues == 'true'
+      if: contains(env.security_issues_found, 'true') || contains(env.backend_security_issues, 'true')
       uses: actions/github-script@v7
       with:
         script: |

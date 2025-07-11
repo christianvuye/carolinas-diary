@@ -20,4 +20,3 @@ paths-ignore:
 paths:
   - "frontend/src/**"
   - "backend/**"
-  - "!backend/venv/**"
