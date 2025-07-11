@@ -6,7 +6,7 @@ from typing import List, Optional
 import uvicorn
 import random
 
-from database import SessionLocal, engine, Base
+from database import SessionLocal, engine, Base, get_query_performance_stats
 from models import JournalEntry, GratitudeQuestion, EmotionQuestion, Quote, User
 from schemas import (
     JournalEntryCreate,
@@ -294,6 +294,12 @@ async def get_all_journal_entries(
 async def get_available_emotions():
     """Get list of available emotions"""
     return list(EMOTION_QUESTIONS.keys())
+
+
+@app.get("/admin/database-performance")
+async def get_database_performance():
+    """Get database query performance statistics"""
+    return get_query_performance_stats()
 
 
 if __name__ == "__main__":
