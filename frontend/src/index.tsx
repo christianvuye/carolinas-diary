@@ -4,13 +4,17 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { register } from './utils/serviceWorkerRegistration';
+import './sentry'; // Initialize Sentry
+import * as Sentry from '@sentry/react';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <App />
+    <Sentry.ErrorBoundary fallback={<div>An error has occurred</div>}>
+      <App />
+    </Sentry.ErrorBoundary>
   </React.StrictMode>
 );
 

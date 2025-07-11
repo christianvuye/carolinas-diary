@@ -1,3 +1,6 @@
+import os
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -18,6 +21,28 @@ from schemas import (
 )
 from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
 from auth import get_current_user, get_current_user_dev
+
+# Initialize Sentry
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN", "YOUR_SENTRY_DSN_HERE"),
+    integrations=[
+        FastApiIntegration(),
+    ],
+    # Performance Monitoring
+    traces_sample_rate=1.0,  # Capture 100% of the transactions, adjust in production
+    
+    # Environment
+    environment=os.getenv("ENVIRONMENT", "development"),
+    
+    # Release version
+    release=os.getenv("APP_VERSION", "1.0.0"),
+    
+    # Enable debug mode in development
+    debug=os.getenv("ENVIRONMENT", "development") == "development",
+    
+    # Before send callback to filter out certain errors
+    before_send=lambda event, hint: None if os.getenv("ENVIRONMENT") == "development" else event,
+)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
