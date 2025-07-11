@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useSearchParams,
+} from 'react-router-dom';
+
 import './App.css';
-import JournalEntry from './components/JournalEntry';
 import AllEntries from './components/AllEntries';
 import Header from './components/Header';
+import JournalEntry from './components/JournalEntry';
 import Login from './components/Login';
-import Register from './components/Register';
+import OfflineIndicator from './components/OfflineIndicator';
 import ProtectedRoute from './components/ProtectedRoute';
 import PWAInstallBanner from './components/PWAInstallBanner';
-import OfflineIndicator from './components/OfflineIndicator';
+import Register from './components/Register';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { apiService } from './services/api';
 
@@ -38,19 +45,18 @@ function JournalPage() {
   const handleDateChange = (newDate: Date) => {
     setCurrentDate(newDate);
     // Update URL parameter
-    const searchParams = new URLSearchParams(window.location.search);
-    searchParams.set('date', newDate.toISOString().split('T')[0]);
-    window.history.replaceState({}, '', `${window.location.pathname}?${searchParams}`);
+    const urlSearchParams = new URLSearchParams(window.location.search || '');
+    const dateString = newDate.toISOString().split('T')[0]!;
+    urlSearchParams.set('date', dateString);
+    const newUrl = `${window.location.pathname || '/'}?${urlSearchParams.toString()}`;
+    window.history.replaceState({}, '', newUrl);
   };
 
   return (
     <div className="App">
       <Header />
       <main className="main-content">
-        <JournalEntry 
-          date={currentDate} 
-          onDateChange={handleDateChange}
-        />
+        <JournalEntry date={currentDate} onDateChange={handleDateChange} />
       </main>
     </div>
   );

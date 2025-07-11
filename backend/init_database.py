@@ -4,11 +4,10 @@ Database initialization script for Carolina's Diary
 Creates all tables and populates with initial data
 """
 
-from database import engine, Base
-from models import User, JournalEntry, GratitudeQuestion, EmotionQuestion, Quote
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-import json
+
+from database import Base, engine
+from models import EmotionQuestion, GratitudeQuestion, Quote
 
 # Create database session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -54,34 +53,91 @@ def init_database():
             # Anxiety
             (
                 "anxiety",
-                "What specific thoughts or situations triggered your anxiety today?",
+                (
+                    "What specific thoughts or situations triggered your "
+                    "anxiety today?"
+                ),
             ),
             (
                 "anxiety",
-                "What physical sensations did you notice when feeling anxious?",
+                ("What physical sensations did you notice when feeling anxious?"),
             ),
-            ("anxiety", "What coping strategies helped you manage your anxiety?"),
-            ("anxiety", "What would you tell a friend experiencing similar anxiety?"),
+            (
+                "anxiety",
+                ("What coping strategies helped you manage your " "anxiety?"),
+            ),
+            (
+                "anxiety",
+                ("What would you tell a friend experiencing similar " "anxiety?"),
+            ),
             # Sadness
-            ("sadness", "What is at the root of your sadness today?"),
-            ("sadness", "How has this sadness affected your day?"),
-            ("sadness", "What small thing could bring you comfort right now?"),
-            ("sadness", "What support do you need during this difficult time?"),
+            (
+                "sadness",
+                "What is at the root of your sadness today?",
+            ),
+            (
+                "sadness",
+                "How has this sadness affected your day?",
+            ),
+            (
+                "sadness",
+                "What small thing could bring you comfort right now?",
+            ),
+            (
+                "sadness",
+                ("What support do you need during this difficult " "time?"),
+            ),
             # Stress
-            ("stress", "What are the main sources of stress in your life right now?"),
-            ("stress", "How is stress showing up in your body and mind?"),
-            ("stress", "What boundaries could you set to reduce stress?"),
-            ("stress", "What would help you feel more balanced?"),
+            (
+                "stress",
+                ("What are the main sources of stress in your life " "right now?"),
+            ),
+            (
+                "stress",
+                "How is stress showing up in your body and mind?",
+            ),
+            (
+                "stress",
+                "What boundaries could you set to reduce stress?",
+            ),
+            (
+                "stress",
+                "What would help you feel more balanced?",
+            ),
             # Happiness
-            ("happiness", "What brought you the most joy today?"),
-            ("happiness", "How did you share your happiness with others?"),
-            ("happiness", "What do you want to remember about this feeling?"),
-            ("happiness", "How can you cultivate more moments like this?"),
+            (
+                "happiness",
+                "What brought you the most joy today?",
+            ),
+            (
+                "happiness",
+                "How did you share your happiness with others?",
+            ),
+            (
+                "happiness",
+                "What do you want to remember about this feeling?",
+            ),
+            (
+                "happiness",
+                "How can you cultivate more moments like this?",
+            ),
             # Anger
-            ("anger", "What situation or person triggered your anger?"),
-            ("anger", "What underlying need or value was not being honored?"),
-            ("anger", "How can you express this anger constructively?"),
-            ("anger", "What would resolution look like for you?"),
+            (
+                "anger",
+                "What situation or person triggered your anger?",
+            ),
+            (
+                "anger",
+                "What underlying need or value was not being honored?",
+            ),
+            (
+                "anger",
+                "How can you express this anger constructively?",
+            ),
+            (
+                "anger",
+                "What would resolution look like for you?",
+            ),
         ]
 
         for emotion, question in emotion_questions:
@@ -91,25 +147,46 @@ def init_database():
         quotes = [
             (
                 "anxiety",
-                "You are braver than you believe, stronger than you seem, and smarter than you think.",
+                (
+                    "You are braver than you believe, stronger than you seem, "
+                    "and smarter than you think."
+                ),
                 "A.A. Milne",
             ),
             (
                 "anxiety",
-                "Nothing can bring you peace but yourself.",
+                ("Nothing can bring you peace " "but yourself."),
                 "Ralph Waldo Emerson",
             ),
-            ("sadness", "The wound is the place where the Light enters you.", "Rumi"),
-            ("sadness", "Grief is the price we pay for love.", "Queen Elizabeth II"),
+            (
+                "sadness",
+                "The wound is the place where the Light enters you.",
+                "Rumi",
+            ),
+            (
+                "sadness",
+                "Grief is the price we pay for love.",
+                "Queen Elizabeth II",
+            ),
             (
                 "stress",
-                "You have been assigned this mountain to show others it can be moved.",
+                (
+                    "You have been assigned this mountain to show others it "
+                    "can be moved."
+                ),
                 "Mel Robbins",
             ),
-            ("stress", "Take time to make your soul happy.", "Unknown"),
+            (
+                "stress",
+                "Take time to make your soul happy.",
+                "Unknown",
+            ),
             (
                 "happiness",
-                "Happiness is not something ready made. It comes from your own actions.",
+                (
+                    "Happiness is not something ready made. It comes from "
+                    "your own actions."
+                ),
                 "Dalai Lama",
             ),
             (
@@ -119,12 +196,19 @@ def init_database():
             ),
             (
                 "anger",
-                "For every minute you are angry you lose sixty seconds of happiness.",
+                (
+                    "For every minute you are angry you lose sixty seconds "
+                    "of happiness."
+                ),
                 "Ralph Waldo Emerson",
             ),
             (
                 "anger",
-                "Anger is an acid that can do more harm to the vessel in which it is stored than to anything on which it is poured.",
+                (
+                    "Anger is an acid that can do more harm to the vessel "
+                    "in which it is stored than to anything on which it is "
+                    "poured."
+                ),
                 "Mark Twain",
             ),
         ]

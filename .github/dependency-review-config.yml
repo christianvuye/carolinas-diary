@@ -1,0 +1,25 @@
+---
+# Dependency Review Configuration
+# This file configures the dependency review action for security compliance
+
+# Fail on security vulnerabilities of moderate severity or higher
+fail-on-severity: moderate
+
+# Allow these licenses (GitHub Actions, npm packages, pip packages)
+allow-licenses:
+  - MIT
+  - Apache-2.0
+  - BSD-3-Clause
+  - BSD-2-Clause
+  - ISC
+
+# Skip these GitHub Advisory Database IDs during detection
+# Add specific GHSAs here if needed for essential security tools
+allow-ghsas:
+  # Placeholder - add specific GHSAs if needed
+  # - GHSA-abcd-1234-5679
+
+# Block vulnerabilities in these scopes
+fail-on-scopes:
+  - runtime
+  - development

@@ -1,28 +1,28 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from datetime import datetime, date
-from typing import List, Optional
-import uvicorn
-import random
+"""FastAPI backend application for Carolina's Diary journaling app."""
 
-from database import SessionLocal, engine, Base
-from models import JournalEntry, GratitudeQuestion, EmotionQuestion, Quote, User
-from schemas import (
-    JournalEntryCreate,
-    JournalEntryResponse,
-    EmotionQuestionResponse,
-    UserCreate,
-    UserResponse,
-    UserUpdate,
-)
-from emotion_data import EMOTION_QUESTIONS, QUOTES_DATA, GRATITUDE_QUESTIONS
+import random
+from datetime import date, datetime
+from typing import List
+
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import DatabaseError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from auth import get_current_user, get_current_user_dev
+from database import Base, SessionLocal, engine
+from emotion_data import EMOTION_QUESTIONS, GRATITUDE_QUESTIONS, QUOTES_DATA
+from models import EmotionQuestion, GratitudeQuestion, JournalEntry, Quote, User
+from schemas import EmotionQuestionResponse, JournalEntryCreate, JournalEntryResponse, UserResponse, UserUpdate
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Carolina's Diary", description="A personalized journaling app")
+app = FastAPI(
+    title="Carolina's Diary",
+    description="A personalized journaling app",
+)
 
 # CORS middleware
 app.add_middleware(
@@ -36,6 +36,21 @@ app.add_middleware(
 
 # Dependency to get database session
 def get_db():
+    """
+    Provides a generator for database session handling, ensuring the session
+    is properly opened and closed.
+    Parameters:
+        None
+    Returns:
+        - generator: A context manager that yields a SQLAlchemy database
+        session.
+    Example:
+        - Using the FastAPI dependency injection, a route can access the
+        database session as follows:
+          @app.get("/items/")
+          def read_items(db: Session = Depends(get_db)):
+              return db.query(Item).all()
+    """
     db = SessionLocal()
     try:
         yield db
@@ -48,15 +63,14 @@ def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User:
     """Get user by Firebase UID, create if doesn't exist"""
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
     if not user:
-        raise HTTPException(
-            status_code=404, detail="User not found. Please register first."
-        )
+        raise HTTPException(status_code=404, detail="User not found. Please register first.")
     return user
 
 
 # Initialize database with questions and quotes
 @app.on_event("startup")
 async def startup_event():
+    """Initialize database with questions and quotes on startup."""
     db = SessionLocal()
     try:
         # Check if data already exists
@@ -70,7 +84,10 @@ async def startup_event():
             # Add emotion questions
             for emotion, questions in EMOTION_QUESTIONS.items():
                 for question in questions:
-                    db_question = EmotionQuestion(emotion=emotion, question=question)
+                    db_question = EmotionQuestion(
+                        emotion=emotion,
+                        question=question,
+                    )
                     db.add(db_question)
 
         if db.query(Quote).count() == 0:
@@ -85,7 +102,7 @@ async def startup_event():
                     db.add(db_quote)
 
         db.commit()
-    except Exception as e:
+    except (SQLAlchemyError, DatabaseError) as e:
         db.rollback()
         print(f"Error initializing database: {e}")
     finally:
@@ -94,13 +111,21 @@ async def startup_event():
 
 @app.get("/")
 async def root():
+    """
+    Serves as the root endpoint, providing a welcome message.
+    Returns:
+        - dict: A dictionary containing a welcome message.
+    Example:
+        - root() -> {"message": "Welcome to Carolina's Diary"}
+    """
     return {"message": "Welcome to Carolina's Diary"}
 
 
 # User management endpoints
 @app.post("/users/register", response_model=UserResponse)
 async def register_user(
-    user_data: dict = Depends(get_current_user_dev), db: Session = Depends(get_db)
+    user_data: dict = Depends(get_current_user_dev),
+    db: Session = Depends(get_db),
 ):
     """
     Register a new user or return existing user
@@ -127,7 +152,8 @@ async def register_user(
 
 @app.get("/users/me", response_model=UserResponse)
 async def get_current_user_info(
-    user_data: dict = Depends(get_current_user_dev), db: Session = Depends(get_db)
+    user_data: dict = Depends(get_current_user_dev),
+    db: Session = Depends(get_db),
 ):
     """
     Get current user information
@@ -180,9 +206,7 @@ async def get_gratitude_questions(db: Session = Depends(get_db)):
 @app.get("/emotion-questions/{emotion}")
 async def get_emotion_questions(emotion: str, db: Session = Depends(get_db)):
     """Get questions for a specific emotion"""
-    questions = (
-        db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion).all()
-    )
+    questions = db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion).all()
     return [EmotionQuestionResponse(id=q.id, question=q.question) for q in questions]
 
 
@@ -209,11 +233,7 @@ async def create_journal_entry(
     user = get_user_by_firebase_uid(db, user_data["uid"])
 
     # Check if entry exists for today for this user
-    existing_entry = (
-        db.query(JournalEntry)
-        .filter(JournalEntry.date == today, JournalEntry.user_id == user.id)
-        .first()
-    )
+    existing_entry = db.query(JournalEntry).filter(JournalEntry.date == today, JournalEntry.user_id == user.id).first()
 
     if existing_entry:
         # Update existing entry
@@ -259,34 +279,32 @@ async def get_journal_entry(
         entry = (
             db.query(JournalEntry)
             .filter(
-                JournalEntry.date == entry_date_obj, JournalEntry.user_id == user.id
+                JournalEntry.date == entry_date_obj,
+                JournalEntry.user_id == user.id,
             )
             .first()
         )
 
         if not entry:
-            raise HTTPException(status_code=404, detail="Journal entry not found")
+            raise HTTPException(
+                status_code=404,
+                detail="Journal entry not found",
+            )
         return entry
-    except ValueError:
-        raise HTTPException(
-            status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
-        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD") from exc
 
 
 @app.get("/journal-entries", response_model=List[JournalEntryResponse])
 async def get_all_journal_entries(
-    user_data: dict = Depends(get_current_user), db: Session = Depends(get_db)
+    user_data: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get all journal entries for the current user"""
     # Get current user
     user = get_user_by_firebase_uid(db, user_data["uid"])
 
-    entries = (
-        db.query(JournalEntry)
-        .filter(JournalEntry.user_id == user.id)
-        .order_by(JournalEntry.date.desc())
-        .all()
-    )
+    entries = db.query(JournalEntry).filter(JournalEntry.user_id == user.id).order_by(JournalEntry.date.desc()).all()
     return entries
 
 

@@ -4,8 +4,9 @@ Database migration script for Carolina's Diary
 Converts single-user database to multi-user with Firebase authentication
 """
 
-import sqlite3
 import json
+import shutil
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 
@@ -16,8 +17,6 @@ def backup_database(db_path):
     backup_full_path = db_path.parent / backup_path
 
     # Copy the database file
-    import shutil
-
     shutil.copy2(db_path, backup_full_path)
     print(f"Database backed up to: {backup_full_path}")
     return backup_full_path
@@ -179,9 +178,6 @@ def migrate_database(db_path):
     except Exception as e:
         print(f"Migration failed: {e}")
         print(f"Restoring from backup: {backup_path}")
-
-        # Restore from backup
-        import shutil
 
         shutil.copy2(backup_path, db_path)
 

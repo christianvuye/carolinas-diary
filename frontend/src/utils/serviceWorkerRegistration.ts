@@ -2,10 +2,10 @@
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
-  window.location.hostname === '[::1]' ||
-  window.location.hostname.match(
-    /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-  )
+    window.location.hostname === '[::1]' ||
+    window.location.hostname.match(
+      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    )
 );
 
 type Config = {
@@ -28,7 +28,7 @@ export function register(config?: Config) {
         navigator.serviceWorker.ready.then(() => {
           console.log(
             'This web app is being served cache-first by a service worker. ' +
-            'To learn more, visit https://cra.link/PWA'
+              'To learn more, visit https://cra.link/PWA'
           );
         });
       } else {
@@ -41,9 +41,9 @@ export function register(config?: Config) {
 function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
     .register(swUrl)
-    .then((registration) => {
+    .then(registration => {
       console.log('Service Worker registered successfully:', registration);
-      
+
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
@@ -68,7 +68,7 @@ function registerValidSW(swUrl: string, config?: Config) {
         };
       };
     })
-    .catch((error) => {
+    .catch(error => {
       console.error('Error during service worker registration:', error);
     });
 }
@@ -77,13 +77,13 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
   fetch(swUrl, {
     headers: { 'Service-Worker': 'script' },
   })
-    .then((response) => {
+    .then(response => {
       const contentType = response.headers.get('content-type');
       if (
         response.status === 404 ||
         (contentType != null && contentType.indexOf('javascript') === -1)
       ) {
-        navigator.serviceWorker.ready.then((registration) => {
+        navigator.serviceWorker.ready.then(registration => {
           registration.unregister().then(() => {
             window.location.reload();
           });
@@ -102,10 +102,10 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then((registration) => {
+      .then(registration => {
         registration.unregister();
       })
-      .catch((error) => {
+      .catch(error => {
         console.error(error.message);
       });
   }
@@ -121,7 +121,7 @@ export class PWAInstallPrompt {
   }
 
   private init() {
-    window.addEventListener('beforeinstallprompt', (e) => {
+    window.addEventListener('beforeinstallprompt', e => {
       console.log('PWA: Install prompt available');
       e.preventDefault();
       this.deferredPrompt = e;
@@ -135,8 +135,10 @@ export class PWAInstallPrompt {
     });
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        (window.navigator as any).standalone === true) {
+    if (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true
+    ) {
       this.isInstalled = true;
     }
   }
@@ -150,10 +152,10 @@ export class PWAInstallPrompt {
     this.deferredPrompt.prompt();
     const result = await this.deferredPrompt.userChoice;
     console.log('PWA: User choice:', result);
-    
+
     this.deferredPrompt = null;
     this.hideInstallButton();
-    
+
     return result.outcome === 'accepted';
   }
 

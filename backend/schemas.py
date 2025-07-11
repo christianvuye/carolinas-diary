@@ -1,9 +1,14 @@
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+"""Pydantic schemas for API request/response validation."""
+
 from datetime import date, datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
 
 
 class UserCreate(BaseModel):
+    """Schema for creating a new user."""
+
     firebase_uid: str
     email: str
     name: Optional[str] = None
@@ -13,6 +18,8 @@ class UserCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
+    """Schema for user response data."""
+
     id: int
     firebase_uid: str
     email: str
@@ -24,10 +31,14 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        """Pydantic configuration for ORM model compatibility."""
+
         from_attributes = True
 
 
 class UserUpdate(BaseModel):
+    """Schema for updating user data."""
+
     name: Optional[str] = None
     picture: Optional[str] = None
     email_verified: Optional[bool] = None
@@ -35,6 +46,8 @@ class UserUpdate(BaseModel):
 
 
 class JournalEntryCreate(BaseModel):
+    """Schema for creating a new journal entry."""
+
     gratitude_answers: List[str] = []
     emotion: Optional[str] = None
     emotion_answers: List[str] = []
@@ -43,6 +56,8 @@ class JournalEntryCreate(BaseModel):
 
 
 class JournalEntryResponse(BaseModel):
+    """Schema for journal entry response data."""
+
     id: int
     user_id: int
     date: date
@@ -55,17 +70,20 @@ class JournalEntryResponse(BaseModel):
     updated_at: datetime
 
     class Config:
-        from_attributes = True
+        """Pydantic configuration for ORM model compatibility."""
 
-    class Config:
         from_attributes = True
 
 
 class EmotionQuestionResponse(BaseModel):
+    """Schema for emotion question response data."""
+
     id: int
     question: str
 
 
 class QuoteResponse(BaseModel):
+    """Schema for quote response data."""
+
     quote: str
     author: str

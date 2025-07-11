@@ -66,9 +66,12 @@ jobs:
 
       - name: Run tests after updates
         if: contains(env.frontend_updated, 'true') || contains(env.backend_updated, 'true')
+        env:
+          FRONTEND_UPDATED: ${{ env.frontend_updated }}
+          BACKEND_UPDATED: ${{ env.backend_updated }}
         run: |
           # Frontend tests
-          if [ "$frontend_updated" == "true" ]; then
+          if [ "$FRONTEND_UPDATED" == "true" ]; then
             cd frontend
             npm ci
             npm test -- --watchAll=false || echo "frontend_tests_failed=true" >> $GITHUB_ENV
@@ -76,7 +79,7 @@ jobs:
           fi
 
           # Backend tests
-          if [ "$backend_updated" == "true" ]; then
+          if [ "$BACKEND_UPDATED" == "true" ]; then
             cd "$GITHUB_WORKSPACE/backend"
             pip install -r requirements.txt
             # Install test dependencies if available

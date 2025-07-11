@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { apiService, VisualSettings } from '../services/api';
-import { firestoreService } from '../services/firestore';
+import React, { useEffect, useState } from 'react';
+
 import { useAuth } from '../context/AuthContext';
+import { VisualSettings, apiService } from '../services/api';
+import { firestoreService } from '../services/firestore';
+
 import { refreshEntriesCache } from './AllEntries';
-import GratitudeSection from './GratitudeSection';
-import EmotionSection from './EmotionSection';
 import CustomizationPanel from './CustomizationPanel';
 import DatePicker from './DatePicker';
+import EmotionSection from './EmotionSection';
+import GratitudeSection from './GratitudeSection';
 import './JournalEntry.css';
 
 interface JournalEntryProps {
@@ -19,10 +21,10 @@ interface JournalData {
   user_id?: number;
   date?: string;
   gratitude_answers: string[];
-  emotion?: string | null;
+  emotion?: string | null | undefined;
   emotion_answers: string[];
-  custom_text?: string | null;
-  visual_settings?: VisualSettings | null;
+  custom_text?: string | null | undefined;
+  visual_settings?: VisualSettings | null | undefined;
   created_at?: string;
   updated_at?: string;
 }
@@ -37,8 +39,8 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       textColor: '#333333',
       fontFamily: 'Arial, sans-serif',
       fontSize: '16px',
-      stickers: []
-    }
+      stickers: [],
+    },
   });
 
   const [showCustomization, setShowCustomization] = useState(false);
@@ -53,50 +55,65 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
 
   const loadJournalEntry = async () => {
     if (!currentUser) return;
-    
+
     try {
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = date.toISOString().split('T')[0]!;
       const userId = 'dev-user-123'; // For development consistency
-      
+
       // Try to load from localStorage first for instant loading
       const localStorageKey = `journal_${userId}_${dateStr}`;
       const localEntry = localStorage.getItem(localStorageKey);
-      
+
       if (localEntry) {
         const parsedEntry = JSON.parse(localEntry);
         setJournalData({
-          gratitude_answers: parsedEntry.gratitude_answers || ['', '', '', '', ''],
-          emotion: parsedEntry.emotion,
+          gratitude_answers: parsedEntry.gratitude_answers || [
+            '',
+            '',
+            '',
+            '',
+            '',
+          ],
+          emotion: parsedEntry.emotion || null,
           emotion_answers: parsedEntry.emotion_answers || [],
-          custom_text: parsedEntry.custom_text,
+          custom_text: parsedEntry.custom_text || null,
           visual_settings: parsedEntry.visual_settings || {
             backgroundColor: '#ffffff',
             textColor: '#333333',
             fontFamily: 'Arial, sans-serif',
             fontSize: '16px',
-            stickers: []
-          }
+            stickers: [],
+          },
         });
         setIsInitialized(true);
         return; // Exit early if we have local data
       }
-      
+
       // Try to load from Firestore as fallback
-      const firestoreEntry = await firestoreService.getJournalEntry(userId, dateStr);
-      
+      const firestoreEntry = await firestoreService.getJournalEntry(
+        userId,
+        dateStr,
+      );
+
       if (firestoreEntry) {
         setJournalData({
-          gratitude_answers: firestoreEntry.gratitude_answers || ['', '', '', '', ''],
-          emotion: firestoreEntry.emotion,
+          gratitude_answers: firestoreEntry.gratitude_answers || [
+            '',
+            '',
+            '',
+            '',
+            '',
+          ],
+          emotion: firestoreEntry.emotion || null,
           emotion_answers: firestoreEntry.emotion_answers || [],
-          custom_text: firestoreEntry.custom_text,
+          custom_text: firestoreEntry.custom_text || null,
           visual_settings: firestoreEntry.visual_settings || {
             backgroundColor: '#ffffff',
             textColor: '#333333',
             fontFamily: 'Arial, sans-serif',
             fontSize: '16px',
-            stickers: []
-          }
+            stickers: [],
+          },
         });
       } else {
         // Fallback to API if no Firestore entry exists
@@ -104,15 +121,23 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
           const response = await apiService.getJournalEntry(dateStr);
           setJournalData({
             ...response,
-            gratitude_answers: response.gratitude_answers || ['', '', '', '', ''],
+            gratitude_answers: response.gratitude_answers || [
+              '',
+              '',
+              '',
+              '',
+              '',
+            ],
+            emotion: response.emotion || null,
             emotion_answers: response.emotion_answers || [],
+            custom_text: response.custom_text || null,
             visual_settings: response.visual_settings || {
               backgroundColor: '#ffffff',
               textColor: '#333333',
               fontFamily: 'Arial, sans-serif',
               fontSize: '16px',
-              stickers: []
-            }
+              stickers: [],
+            },
           });
         } catch (apiError) {
           console.log('No existing entry found, starting fresh');
@@ -127,80 +152,103 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
 
   const saveJournalEntry = async () => {
     if (!currentUser) return;
-    
+
     setIsLoading(true);
     try {
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = date.toISOString().split('T')[0]!;
       const dataToSave = {
-        gratitude_answers: journalData.gratitude_answers || ['', '', '', '', ''],
-        emotion: journalData.emotion,
+        gratitude_answers: journalData.gratitude_answers || [
+          '',
+          '',
+          '',
+          '',
+          '',
+        ],
+        emotion: journalData.emotion || null,
         emotion_answers: journalData.emotion_answers || [],
-        custom_text: journalData.custom_text,
+        custom_text: journalData.custom_text || null,
         visual_settings: journalData.visual_settings || {
           backgroundColor: '#ffffff',
           textColor: '#333333',
           fontFamily: 'Arial, sans-serif',
           fontSize: '16px',
-          stickers: []
-        }
+          stickers: [],
+        },
       };
-      
+
       // Use consistent user ID for development
       const userId = 'dev-user-123'; // For development consistency
       console.log('Saving entry for user:', userId, 'date:', dateStr);
-      
+
       // Save to localStorage immediately for instant performance
       const localStorageKey = `journal_${userId}_${dateStr}`;
-      localStorage.setItem(localStorageKey, JSON.stringify({
-        ...dataToSave,
-        date: dateStr,
-        userId,
-        savedAt: new Date().toISOString()
-      }));
-      
+      localStorage.setItem(
+        localStorageKey,
+        JSON.stringify({
+          ...dataToSave,
+          date: dateStr,
+          userId,
+          savedAt: new Date().toISOString(),
+        }),
+      );
+
       // Update all entries cache in localStorage
       const allEntriesKey = `all_entries_${userId}`;
-      const existingEntries = JSON.parse(localStorage.getItem(allEntriesKey) || '[]');
-      const entryIndex = existingEntries.findIndex((entry: any) => entry.date === dateStr);
-      
+      const existingEntries = JSON.parse(
+        localStorage.getItem(allEntriesKey) || '[]',
+      );
+      const entryIndex = existingEntries.findIndex(
+        (entry: any) => entry.date === dateStr,
+      );
+
       const now = new Date();
       const entryToCache = {
         id: `${userId}_${dateStr}`,
         userId,
         date: dateStr,
         ...dataToSave,
-        createdAt: entryIndex === -1 ? now.toISOString() : existingEntries[entryIndex].createdAt,
-        updatedAt: now.toISOString()
+        createdAt:
+          entryIndex === -1
+            ? now.toISOString()
+            : existingEntries[entryIndex].createdAt,
+        updatedAt: now.toISOString(),
       };
-      
+
       if (entryIndex === -1) {
         existingEntries.unshift(entryToCache);
       } else {
         existingEntries[entryIndex] = entryToCache;
       }
-      
+
       localStorage.setItem(allEntriesKey, JSON.stringify(existingEntries));
-      
+
       // Try to save to Firestore in background (don't await)
-      firestoreService.saveJournalEntry(userId, dateStr, dataToSave).catch(error => {
-        console.log('Firestore save failed, but localStorage succeeded:', error);
-      });
-      
+      firestoreService
+        .saveJournalEntry(userId, dateStr, dataToSave)
+        .catch(error => {
+          console.log(
+            'Firestore save failed, but localStorage succeeded:',
+            error,
+          );
+        });
+
       // Also try to save to API as backup (don't await)
-      apiService.saveJournalEntry({
-        ...dataToSave,
-        date: dateStr
-      }).catch(error => {
-        console.log('API save failed, but localStorage succeeded:', error);
-      });
-      
+      apiService
+        .saveJournalEntry({
+          ...dataToSave,
+          date: dateStr,
+        })
+        .catch(error => {
+          console.log('API save failed, but localStorage succeeded:', error);
+        });
+
       setIsSaved(true);
       setShowPostSaveOptions(true);
       setTimeout(() => {
         setIsSaved(false);
         setShowPostSaveOptions(false);
       }, 5000);
-      
+
       // Refresh entries cache to show updated data
       refreshEntriesCache(userId);
     } catch (error) {
@@ -217,15 +265,15 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
   const updateVisualSettings = (settings: Partial<VisualSettings>) => {
     setJournalData(prev => ({
       ...prev,
-      visual_settings: { 
-        ...prev.visual_settings, 
+      visual_settings: {
+        ...prev.visual_settings,
         backgroundColor: '#ffffff',
         textColor: '#333333',
         fontFamily: 'Arial, sans-serif',
         fontSize: '16px',
         stickers: [],
-        ...settings 
-      }
+        ...settings,
+      },
     }));
   };
 
@@ -241,10 +289,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       <div className="journal-header">
         <div className="journal-title-section">
           <h2>Journal Entry</h2>
-          <DatePicker 
-            selectedDate={date}
-            onDateChange={onDateChange}
-          />
+          <DatePicker selectedDate={date} onDateChange={onDateChange} />
         </div>
         <div className="journal-actions">
           <button
@@ -258,13 +303,15 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
 
       {showCustomization && (
         <CustomizationPanel
-          visualSettings={journalData.visual_settings || {
-            backgroundColor: '#ffffff',
-            textColor: '#333333',
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '16px',
-            stickers: []
-          }}
+          visualSettings={
+            journalData.visual_settings || {
+              backgroundColor: '#ffffff',
+              textColor: '#333333',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '16px',
+              stickers: [],
+            }
+          }
           onUpdateSettings={updateVisualSettings}
         />
       )}
@@ -272,14 +319,18 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       <div className="journal-content">
         <GratitudeSection
           answers={journalData.gratitude_answers || ['', '', '', '', '']}
-          onUpdateAnswers={(answers) => updateJournalData({ gratitude_answers: answers })}
+          onUpdateAnswers={answers =>
+            updateJournalData({ gratitude_answers: answers })
+          }
         />
 
         <EmotionSection
           selectedEmotion={journalData.emotion || ''}
           emotionAnswers={journalData.emotion_answers || []}
-          onUpdateEmotion={(emotion) => updateJournalData({ emotion })}
-          onUpdateAnswers={(answers) => updateJournalData({ emotion_answers: answers })}
+          onUpdateEmotion={emotion => updateJournalData({ emotion })}
+          onUpdateAnswers={answers =>
+            updateJournalData({ emotion_answers: answers })
+          }
         />
 
         <div className="custom-text-section">
@@ -287,7 +338,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
           <textarea
             className="custom-text-area"
             value={journalData.custom_text || ''}
-            onChange={(e) => updateJournalData({ custom_text: e.target.value })}
+            onChange={e => updateJournalData({ custom_text: e.target.value })}
             placeholder="Write any additional thoughts, experiences, or reflections here..."
             rows={6}
           />
@@ -329,7 +380,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       </div>
 
       <div className="stickers-container">
-        {(journalData.visual_settings?.stickers || []).map((sticker) => (
+        {(journalData.visual_settings?.stickers || []).map(sticker => (
           <div
             key={sticker.id}
             className="sticker"

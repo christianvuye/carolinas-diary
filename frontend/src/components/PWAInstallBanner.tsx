@@ -1,5 +1,6 @@
-import React from 'react';
 import { Download, X, Smartphone } from 'lucide-react';
+import React from 'react';
+
 import { usePWA } from '../hooks/usePWA';
 import './PWAInstallBanner.css';
 
@@ -28,11 +29,11 @@ const PWAInstallBanner: React.FC = () => {
           <Smartphone size={24} />
         </div>
         <div className="pwa-banner-text">
-          <h3>Install Carolina's Diary</h3>
+          <h3>Install Carolina&apos;s Diary</h3>
           <p>Get the full app experience on your device</p>
         </div>
         <div className="pwa-banner-actions">
-          <button 
+          <button
             className="pwa-install-btn"
             onClick={handleInstall}
             aria-label="Install app"
@@ -40,7 +41,7 @@ const PWAInstallBanner: React.FC = () => {
             <Download size={18} />
             Install
           </button>
-          <button 
+          <button
             className="pwa-dismiss-btn"
             onClick={dismissInstallPrompt}
             aria-label="Dismiss install prompt"

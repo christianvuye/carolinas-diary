@@ -1,9 +1,10 @@
-from fastapi import HTTPException, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from firebase_admin import auth, initialize_app, credentials
-import firebase_admin
-from typing import Optional
 import os
+from typing import Optional
+
+import firebase_admin
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from firebase_admin import auth, credentials, initialize_app
 
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
@@ -20,13 +21,13 @@ if not firebase_admin._apps:
         # For development, you can use a service account key file
         # cred = credentials.Certificate("path/to/serviceAccountKey.json")
         # initialize_app(cred)
-        
+
         # Initialize with a dummy app to prevent further errors
         try:
             # Try to initialize with project ID only for development
             project_id = "carolina-s-journal"
             cred = credentials.ApplicationDefault()
-            initialize_app(cred, {'projectId': project_id})
+            initialize_app(cred, {"projectId": project_id})
             print("Firebase initialized with project ID only")
         except Exception as e2:
             print(f"Fallback initialization also failed: {e2}")
@@ -40,9 +41,7 @@ class FirebaseAuth:
         self.security = HTTPBearer()
         self.development_mode = not bool(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 
-    async def get_current_user(
-        self, credentials: HTTPAuthorizationCredentials = Depends(security)
-    ) -> dict:
+    async def get_current_user(self, credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
         """
         Verify Firebase ID token and return user information
         """
@@ -57,7 +56,7 @@ class FirebaseAuth:
                 "picture": None,
                 "firebase_claims": {"uid": "dev-user-123"},
             }
-        
+
         try:
             # Verify the ID token
             decoded_token = auth.verify_id_token(credentials.credentials)
@@ -81,13 +80,9 @@ class FirebaseAuth:
         except auth.InvalidIdTokenError:
             raise HTTPException(status_code=401, detail="Invalid token")
         except Exception as e:
-            raise HTTPException(
-                status_code=401, detail=f"Authentication failed: {str(e)}"
-            )
-    
-    async def get_current_user_dev_friendly(
-        self, credentials: HTTPAuthorizationCredentials = None
-    ) -> dict:
+            raise HTTPException(status_code=401, detail=f"Authentication failed: {str(e)}")
+
+    async def get_current_user_dev_friendly(self, credentials: HTTPAuthorizationCredentials = None) -> dict:
         """
         Development-friendly version that doesn't require credentials in dev mode
         """
@@ -102,10 +97,10 @@ class FirebaseAuth:
                 "picture": None,
                 "firebase_claims": {"uid": "dev-user-123"},
             }
-        
+
         if not credentials:
             raise HTTPException(status_code=401, detail="No credentials provided")
-            
+
         return await self.get_current_user(credentials)
 
 
@@ -141,10 +136,10 @@ async def get_current_user_dev(
             "picture": None,
             "firebase_claims": {"uid": "dev-user-123"},
         }
-    
+
     if not credentials:
         raise HTTPException(status_code=401, detail="No credentials provided")
-        
+
     return await firebase_auth.get_current_user(credentials)
 
 
@@ -163,7 +158,7 @@ async def get_current_user_optional(request: Request) -> Optional[dict]:
             "picture": None,
             "firebase_claims": {"uid": "dev-user-123"},
         }
-    
+
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return None

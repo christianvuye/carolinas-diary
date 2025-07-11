@@ -35,6 +35,8 @@ repos:
         language: system
         types: [ts, tsx]
         require_serial: true
+        # Compile the full project instead of just the touched files
+        pass_filenames: false
 
       - id: type-coverage
         name: Type Coverage Check

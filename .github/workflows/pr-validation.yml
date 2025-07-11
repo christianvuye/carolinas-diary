@@ -54,12 +54,14 @@ jobs:
 
       - name: Check commit messages
         run: |
+          # Check commit message subjects (first line only)
+          # Note: This validates subject lines for length and capitalization
           git log --format=%s ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | while IFS= read -r line; do
             if [[ ${#line} -gt 72 ]]; then
-              echo "::warning::Commit message too long (>72 chars): $line"
+              echo "::warning::Commit message subject too long (>72 chars): $line"
             fi
             if [[ ! $line =~ ^[A-Z] ]]; then
-              echo "::warning::Commit message should start with capital letter: $line"
+              echo "::warning::Commit message subject should start with capital letter: $line"
             fi
           done
 

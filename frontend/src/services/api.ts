@@ -1,7 +1,9 @@
 import axios from 'axios';
+
 import { auth } from '../firebase/config';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
 // Create axios instance
 const api = axios.create({
@@ -13,7 +15,7 @@ const api = axios.create({
 
 // Request interceptor to add authentication token
 api.interceptors.request.use(
-  async (config) => {
+  async config => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       const token = await currentUser.getIdToken();
@@ -21,15 +23,15 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
       console.error('Unauthorized access - redirecting to login');
@@ -113,7 +115,9 @@ export const apiService = {
   },
 
   // Journal endpoints
-  createJournalEntry: async (entry: JournalEntryCreate): Promise<JournalEntry> => {
+  createJournalEntry: async (
+    entry: JournalEntryCreate
+  ): Promise<JournalEntry> => {
     const response = await api.post('/journal-entry', entry);
     return response.data;
   },
@@ -154,7 +158,9 @@ export const apiService = {
     return response.data;
   },
 
-  saveJournalEntry: async (entry: JournalEntryCreate & { date?: string }): Promise<JournalEntry> => {
+  saveJournalEntry: async (
+    entry: JournalEntryCreate & { date?: string }
+  ): Promise<JournalEntry> => {
     const response = await api.post('/journal-entry', entry);
     return response.data;
   },
