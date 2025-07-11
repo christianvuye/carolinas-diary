@@ -11,6 +11,7 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 import OfflineIndicator from './components/OfflineIndicator';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { apiService } from './services/api';
+import { useAnalytics } from './hooks/useAnalytics';
 
 function JournalPage() {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ function JournalPage() {
     return dateParam ? new Date(dateParam) : new Date();
   });
   const { currentUser } = useAuth();
+  const analytics = useAnalytics();
 
   // Register user when they first authenticate
   useEffect(() => {

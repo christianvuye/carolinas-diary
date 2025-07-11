@@ -7,6 +7,7 @@ import GratitudeSection from './GratitudeSection';
 import EmotionSection from './EmotionSection';
 import CustomizationPanel from './CustomizationPanel';
 import DatePicker from './DatePicker';
+import { useAnalytics } from '../hooks/useAnalytics';
 import './JournalEntry.css';
 
 interface JournalEntryProps {
@@ -29,6 +30,7 @@ interface JournalData {
 
 const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
   const { currentUser } = useAuth();
+  const analytics = useAnalytics();
   const [journalData, setJournalData] = useState<JournalData>({
     gratitude_answers: ['', '', '', '', ''],
     emotion_answers: [],
@@ -57,6 +59,9 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
     try {
       const dateStr = date.toISOString().split('T')[0];
       const userId = 'dev-user-123'; // For development consistency
+      
+      // Track entry loading
+      analytics.trackEntryLoaded(dateStr);
       
       // Try to load from localStorage first for instant loading
       const localStorageKey = `journal_${userId}_${dateStr}`;
@@ -194,6 +199,9 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
         console.log('API save failed, but localStorage succeeded:', error);
       });
       
+      // Track entry saved
+      analytics.trackEntrySaved(dateStr, dataToSave);
+      
       setIsSaved(true);
       setShowPostSaveOptions(true);
       setTimeout(() => {
@@ -212,6 +220,11 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
 
   const updateJournalData = (updates: Partial<JournalData>) => {
     setJournalData(prev => ({ ...prev, ...updates }));
+    
+    // Track specific updates
+    if (updates.emotion) {
+      analytics.trackEmotionSelected(updates.emotion);
+    }
   };
 
   const updateVisualSettings = (settings: Partial<VisualSettings>) => {
@@ -227,6 +240,11 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
         ...settings 
       }
     }));
+    
+    // Track customization changes
+    Object.entries(settings).forEach(([key, value]) => {
+      analytics.trackCustomizationChanged(key, value);
+    });
   };
 
   const journalStyle = {

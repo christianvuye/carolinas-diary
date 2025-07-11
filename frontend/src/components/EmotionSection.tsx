@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import { Brain, Quote } from 'lucide-react';
+import { useAnalytics } from '../hooks/useAnalytics';
 import './EmotionSection.css';
 
 interface EmotionSectionProps {
@@ -26,6 +27,7 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
   onUpdateEmotion,
   onUpdateAnswers
 }) => {
+  const analytics = useAnalytics();
   const [emotions, setEmotions] = useState<string[]>([]);
   const [questions, setQuestions] = useState<EmotionQuestion[]>([]);
   const [quote, setQuote] = useState<QuoteData | null>(null);
@@ -98,6 +100,9 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
   const handleEmotionSelect = (emotion: string) => {
     onUpdateEmotion(emotion);
     onUpdateAnswers([]);
+    
+    // Track emotion selection
+    analytics.trackEmotionSelected(emotion);
   };
 
   const handleAnswerChange = (index: number, value: string) => {
