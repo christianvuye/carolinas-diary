@@ -19,7 +19,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    // Additional strict type checking options
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
@@ -30,9 +29,6 @@
     "noImplicitOverride": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
-    // Import/export strictness
-    // verbatimModuleSyntax and preserveValueImports require TypeScript 5.0+
-    // Additional helpful options
     "removeComments": false,
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo"

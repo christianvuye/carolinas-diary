@@ -58,4 +58,3 @@ repos:
     rev: v1.3.2
     hooks:
       - id: python-safety-dependencies-check
-

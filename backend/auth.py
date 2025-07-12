@@ -57,9 +57,7 @@ class FirebaseAuth:
             Initializing the FirebaseAuth class will set up HTTPBearer security and determine the development mode based on the presence of GOOGLE_APPLICATION_CREDENTIALS in the environment.
         """
         self.security = HTTPBearer()
-        self.development_mode = not bool(
-            os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-        )
+        self.development_mode = not bool(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
 
     async def get_current_user(
         self, auth_credentials: HTTPAuthorizationCredentials = Depends(security)
@@ -98,17 +96,13 @@ class FirebaseAuth:
         except auth.ExpiredIdTokenError as exc:
             raise HTTPException(status_code=401, detail="Token has expired") from exc
         except auth.RevokedIdTokenError as exc:
-            raise HTTPException(
-                status_code=401, detail="Token has been revoked"
-            ) from exc
+            raise HTTPException(status_code=401, detail="Token has been revoked") from exc
         except auth.InvalidIdTokenError as exc:
             raise HTTPException(status_code=401, detail="Invalid token") from exc
         except ValueError as exc:
             # Log the original exception for debugging purposes
             logger.error("Authentication failed with ValueError: %s", str(exc))
-            raise HTTPException(
-                status_code=401, detail="Authentication failed"
-            ) from exc
+            raise HTTPException(status_code=401, detail="Authentication failed") from exc
 
     async def get_current_user_dev_friendly(
         self, auth_credentials: Optional[HTTPAuthorizationCredentials] = None
@@ -151,9 +145,7 @@ async def get_current_user(
 # Development-friendly dependency
 async def get_current_user_dev(
     _request: Request,
-    auth_credentials: HTTPAuthorizationCredentials = Depends(
-        HTTPBearer(auto_error=False)
-    ),
+    auth_credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
 ) -> Dict[str, Any]:
     """
     Development-friendly dependency that doesn't require auth in dev mode

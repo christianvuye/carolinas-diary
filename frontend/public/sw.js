@@ -7,11 +7,11 @@ const DYNAMIC_CACHE = 'carolinas-diary-dynamic-v1';
 // Simple logging function for service worker
 function swLog(level, message, data = null) {
   const isDevelopment = true; // Can be set based on environment
-  
+
   if (isDevelopment) {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] SW ${level.toUpperCase()}: ${message}`;
-    
+
     switch (level) {
       case 'info':
         console.info(logMessage, data || '');
@@ -26,7 +26,7 @@ function swLog(level, message, data = null) {
         console.log(logMessage, data || '');
     }
   }
-  
+
   // In production, you could send logs to main thread:
   // self.clients.matchAll().then(clients => {
   //   clients.forEach(client => {

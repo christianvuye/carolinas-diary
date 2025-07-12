@@ -25,7 +25,7 @@ class Emotion(str, Enum):
     CATASTROPHIC_THINKING = "catastrophic thinking"
 
 
-class UserCreate(BaseModel):
+class UserCreate(BaseModel):  # type: ignore[misc]
     """Schema for creating a new user."""
 
     firebase_uid: str
@@ -36,7 +36,7 @@ class UserCreate(BaseModel):
     preferences: Dict[str, Any] = {}
 
 
-class UserResponse(BaseModel):
+class UserResponse(BaseModel):  # type: ignore[misc]
     """Schema for user response data."""
 
     id: int
@@ -55,7 +55,7 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(BaseModel):  # type: ignore[misc]
     """Schema for updating user data."""
 
     name: Optional[str] = None
@@ -64,7 +64,7 @@ class UserUpdate(BaseModel):
     preferences: Optional[Dict[str, Any]] = None
 
 
-class JournalEntryCreate(BaseModel):
+class JournalEntryCreate(BaseModel):  # type: ignore[misc]
     """Schema for creating a new journal entry."""
 
     gratitude_answers: List[str] = []
@@ -74,7 +74,7 @@ class JournalEntryCreate(BaseModel):
     visual_settings: Optional[Dict[str, Any]] = None
 
 
-class JournalEntryResponse(BaseModel):
+class JournalEntryResponse(BaseModel):  # type: ignore[misc]
     """Schema for journal entry response data."""
 
     id: int
@@ -94,21 +94,21 @@ class JournalEntryResponse(BaseModel):
         from_attributes = True
 
 
-class EmotionQuestionResponse(BaseModel):
+class EmotionQuestionResponse(BaseModel):  # type: ignore[misc]
     """Schema for emotion question response data."""
 
     id: int
     question: str
 
 
-class QuoteResponse(BaseModel):
+class QuoteResponse(BaseModel):  # type: ignore[misc]
     """Schema for quote response data."""
 
     quote: str
     author: str
 
 
-class PaginationMetadata(BaseModel):
+class PaginationMetadata(BaseModel):  # type: ignore[misc]
     """Schema for pagination metadata."""
 
     current_page: int
@@ -119,7 +119,7 @@ class PaginationMetadata(BaseModel):
     has_previous: bool
 
 
-class PaginatedJournalEntriesResponse(BaseModel):
+class PaginatedJournalEntriesResponse(BaseModel):  # type: ignore[misc]
     """Schema for paginated journal entries response."""
 
     entries: List[JournalEntryResponse]
