@@ -16,7 +16,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    firebase_uid: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    firebase_uid: Mapped[str] = mapped_column(
+        String, unique=True, index=True, nullable=False
+    )
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     picture: Mapped[Optional[str]] = mapped_column(String, nullable=True)
@@ -27,10 +29,14 @@ class User(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     # Relationships
-    journal_entries: Mapped[List["JournalEntry"]] = relationship("JournalEntry", back_populates="user")
+    journal_entries: Mapped[List["JournalEntry"]] = relationship(
+        "JournalEntry", back_populates="user"
+    )
 
 
 class JournalEntry(Base):
@@ -39,7 +45,9 @@ class JournalEntry(Base):
     __tablename__ = "journal_entries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
     date: Mapped[datetime] = mapped_column(Date, index=True)
     gratitude_answers: Mapped[List[str]] = mapped_column(JSON)
     emotion: Mapped[Optional[str]] = mapped_column(String, nullable=True)
@@ -47,7 +55,9 @@ class JournalEntry(Base):
     custom_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     visual_settings: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="journal_entries")

@@ -81,8 +81,12 @@ def migrate_database(db_path: Path) -> bool:
 
         # Create indexes for users table
         cursor.execute("CREATE INDEX IF NOT EXISTS ix_users_id ON users (id)")
-        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users (email)")
-        cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_firebase_uid ON users (firebase_uid)")
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users (email)"
+        )
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_firebase_uid ON users (firebase_uid)"
+        )
 
         # Create default user for existing data
         cursor.execute(
@@ -95,7 +99,9 @@ def migrate_database(db_path: Path) -> bool:
                 "default@carolinasdiary.com",
                 "Default User",
                 True,
-                json.dumps({"theme": "light", "notifications": True, "timezone": "UTC"}),
+                json.dumps(
+                    {"theme": "light", "notifications": True, "timezone": "UTC"}
+                ),
             ),
         )
 
@@ -145,8 +151,12 @@ def migrate_database(db_path: Path) -> bool:
             cursor.execute("ALTER TABLE journal_entries_new RENAME TO journal_entries")
 
             # Create indexes
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(date)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_journal_entries_user_id ON journal_entries(user_id)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(date)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_journal_entries_user_id ON journal_entries(user_id)"
+            )
 
             print("Journal entries table migrated successfully!")
 
@@ -161,7 +171,9 @@ def migrate_database(db_path: Path) -> bool:
         cursor.execute("SELECT COUNT(*) FROM journal_entries")
         entry_count = cursor.fetchone()[0]
 
-        print(f"Migration verification: {user_count} users, {entry_count} journal entries")
+        print(
+            f"Migration verification: {user_count} users, {entry_count} journal entries"
+        )
 
         return True
 

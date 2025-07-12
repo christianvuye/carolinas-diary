@@ -62,7 +62,9 @@ def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> Any:
     """Get user by Firebase UID, create if doesn't exist"""
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found. Please register first.")
+        raise HTTPException(
+            status_code=404, detail="User not found. Please register first."
+        )
     return user
 
 
@@ -199,14 +201,20 @@ async def get_gratitude_questions(db: Session = Depends(get_db)) -> list[str]:
 
 
 @app.get("/emotion-questions/{emotion}")  # type: ignore[misc]
-async def get_emotion_questions(emotion: Emotion, db: Session = Depends(get_db)) -> list[EmotionQuestionResponse]:
+async def get_emotion_questions(
+    emotion: Emotion, db: Session = Depends(get_db)
+) -> list[EmotionQuestionResponse]:
     """Get questions for a specific emotion"""
-    questions = db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion.value).all()
+    questions = (
+        db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion.value).all()
+    )
     return [EmotionQuestionResponse(id=q.id, question=q.question) for q in questions]
 
 
 @app.get("/quote/{emotion}")  # type: ignore[misc]
-async def get_quote_for_emotion(emotion: Emotion, db: Session = Depends(get_db)) -> dict[str, str]:
+async def get_quote_for_emotion(
+    emotion: Emotion, db: Session = Depends(get_db)
+) -> dict[str, str]:
     """Get a random quote for a specific emotion"""
     quotes = db.query(Quote).filter(Quote.emotion == emotion.value).all()
     if not quotes:
@@ -231,7 +239,11 @@ async def create_journal_entry(
     user = get_user_by_firebase_uid(db, user_data["uid"])
 
     # Check if entry exists for today for this user
-    existing_entry = db.query(JournalEntry).filter(JournalEntry.date == today, JournalEntry.user_id == user.id).first()
+    existing_entry = (
+        db.query(JournalEntry)
+        .filter(JournalEntry.date == today, JournalEntry.user_id == user.id)
+        .first()
+    )
 
     if existing_entry:
         # Update existing entry
@@ -290,7 +302,9 @@ async def get_journal_entry(
             )
         return entry
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD") from exc
+        raise HTTPException(
+            status_code=400, detail="Invalid date format. Use YYYY-MM-DD"
+        ) from exc
 
 
 # consider extracting the pagination logic to a service layer for reusability (a reusable pagination service)
@@ -306,7 +320,9 @@ async def get_all_journal_entries(
     if page < 1:
         raise HTTPException(status_code=400, detail="Page number must be >= 1")
     if page_size < 1 or page_size > 100:
-        raise HTTPException(status_code=400, detail="Page size must be between 1 and 100")
+        raise HTTPException(
+            status_code=400, detail="Page size must be between 1 and 100"
+        )
 
     # Get current user
     user = get_user_by_firebase_uid(db, user_data["uid"])
