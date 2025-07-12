@@ -57,14 +57,10 @@ function registerValidSW(swUrl: string, config?: Config) {
               logger.info(
                 'New content is available and will be used when all tabs for this page are closed.'
               );
-              if (config && config.onUpdate) {
-                config.onUpdate(registration);
-              }
+              config?.onUpdate?.(registration);
             } else {
               logger.info('Content is cached for offline use.');
-              if (config && config.onSuccess) {
-                config.onSuccess(registration);
-              }
+              config?.onSuccess?.(registration);
             }
           }
         };

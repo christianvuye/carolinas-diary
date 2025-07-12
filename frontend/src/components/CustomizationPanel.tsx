@@ -108,9 +108,16 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
       if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
         const randomArray = new Uint32Array(2);
         window.crypto.getRandomValues(randomArray);
-        // Type assertion is safe here because getRandomValues guarantees population
-        x = ((randomArray.at(0) as number) / 0xffffffff) * 300;
-        y = ((randomArray.at(1) as number) / 0xffffffff) * 300;
+        // Using bracket notation for better compatibility and type safety
+        // getRandomValues() guarantees the array is populated
+        const val1 = randomArray[0];
+        const val2 = randomArray[1];
+        if (val1 !== undefined && val2 !== undefined) {
+          x = (val1 / 0xffffffff) * 300;
+          y = (val2 / 0xffffffff) * 300;
+        } else {
+          throw new Error('crypto values not generated');
+        }
       } else {
         throw new Error('crypto not available');
       }
