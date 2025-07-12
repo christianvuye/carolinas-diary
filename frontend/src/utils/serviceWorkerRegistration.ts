@@ -1,5 +1,7 @@
 // Service Worker Registration for Carolina's Diary PWA
 
+import { logger } from '../services/logger';
+
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
   window.location.hostname === '[::1]' ||
@@ -26,7 +28,7 @@ export function register(config?: Config) {
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
         navigator.serviceWorker.ready.then(() => {
-          console.log(
+          logger.info(
             'This web app is being served cache-first by a service worker. ' +
             'To learn more, visit https://cra.link/PWA'
           );
@@ -41,9 +43,9 @@ export function register(config?: Config) {
 function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
     .register(swUrl)
-    .then((registration) => {
-      console.log('Service Worker registered successfully:', registration);
-      
+    .then(registration => {
+      logger.info('Service Worker registered successfully', { registration });
+
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {
@@ -52,14 +54,14 @@ function registerValidSW(swUrl: string, config?: Config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              console.log(
+              logger.info(
                 'New content is available and will be used when all tabs for this page are closed.'
               );
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
               }
             } else {
-              console.log('Content is cached for offline use.');
+              logger.info('Content is cached for offline use.');
               if (config && config.onSuccess) {
                 config.onSuccess(registration);
               }
@@ -68,8 +70,8 @@ function registerValidSW(swUrl: string, config?: Config) {
         };
       };
     })
-    .catch((error) => {
-      console.error('Error during service worker registration:', error);
+    .catch(error => {
+      logger.error('Error during service worker registration', { error });
     });
 }
 
@@ -77,13 +79,13 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
   fetch(swUrl, {
     headers: { 'Service-Worker': 'script' },
   })
-    .then((response) => {
+    .then(response => {
       const contentType = response.headers.get('content-type');
       if (
         response.status === 404 ||
         (contentType != null && contentType.indexOf('javascript') === -1)
       ) {
-        navigator.serviceWorker.ready.then((registration) => {
+        navigator.serviceWorker.ready.then(registration => {
           registration.unregister().then(() => {
             window.location.reload();
           });
@@ -93,7 +95,7 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
       }
     })
     .catch(() => {
-      console.log(
+      logger.info(
         'No internet connection found. App is running in offline mode.'
       );
     });
@@ -102,11 +104,11 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready
-      .then((registration) => {
+      .then(registration => {
         registration.unregister();
       })
-      .catch((error) => {
-        console.error(error.message);
+      .catch(error => {
+        logger.error('Service worker unregister failed', { error });
       });
   }
 }
@@ -121,39 +123,41 @@ export class PWAInstallPrompt {
   }
 
   private init() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      console.log('PWA: Install prompt available');
+    window.addEventListener('beforeinstallprompt', e => {
+      logger.info('PWA: Install prompt available');
       e.preventDefault();
       this.deferredPrompt = e;
       this.showInstallButton();
     });
 
     window.addEventListener('appinstalled', () => {
-      console.log('PWA: App was installed');
+      logger.info('PWA: App was installed');
       this.isInstalled = true;
       this.hideInstallButton();
     });
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        (window.navigator as any).standalone === true) {
+    if (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true
+    ) {
       this.isInstalled = true;
     }
   }
 
   public async promptInstall(): Promise<boolean> {
     if (!this.deferredPrompt) {
-      console.log('PWA: No install prompt available');
+      logger.info('PWA: No install prompt available');
       return false;
     }
 
     this.deferredPrompt.prompt();
     const result = await this.deferredPrompt.userChoice;
-    console.log('PWA: User choice:', result);
-    
+    logger.info('PWA: User choice', { result });
+
     this.deferredPrompt = null;
     this.hideInstallButton();
-    
+
     return result.outcome === 'accepted';
   }
 

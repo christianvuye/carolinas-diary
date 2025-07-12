@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+
+import { useAuth } from '../context/AuthContext';
 import './Register.css';
 
 const Register: React.FC = () => {
@@ -15,7 +16,7 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password || !confirmPassword || !name) {
       setError('Please fill in all fields');
       return;
@@ -61,11 +62,11 @@ const Register: React.FC = () => {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h2>Join Carolina's Diary</h2>
+        <h2>Join Carolina&apos;s Diary</h2>
         <p>Create your account to start journaling</p>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="name">Full Name</label>
@@ -73,65 +74,65 @@ const Register: React.FC = () => {
               id="name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="Enter your full name"
               disabled={loading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               placeholder="Enter your email"
               disabled={loading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               placeholder="Create a password (min 6 characters)"
               disabled={loading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={e => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
               disabled={loading}
             />
           </div>
-          
+
           <button type="submit" disabled={loading} className="register-button">
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
-        
+
         <div className="divider">
           <span>or</span>
         </div>
-        
-        <button 
-          onClick={handleGoogleLogin} 
+
+        <button
+          onClick={handleGoogleLogin}
           disabled={loading}
           className="google-login-button"
         >
           Continue with Google
         </button>
-        
+
         <p className="auth-link">
           Already have an account? <Link to="/login">Sign in</Link>
         </p>

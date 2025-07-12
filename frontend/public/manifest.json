@@ -44,7 +44,7 @@
     },
     {
       "name": "All Entries",
-      "short_name": "All Entries", 
+      "short_name": "All Entries",
       "description": "View all journal entries",
       "url": "/entries",
       "icons": [

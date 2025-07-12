@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
 import './DatePicker.css';
 
 interface DatePickerProps {
@@ -7,7 +7,10 @@ interface DatePickerProps {
   onDateChange: (date: Date) => void;
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) => {
+const DatePicker: React.FC<DatePickerProps> = ({
+  selectedDate,
+  onDateChange,
+}) => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [viewDate, setViewDate] = useState(new Date(selectedDate));
 
@@ -16,7 +19,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -24,7 +27,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
@@ -53,33 +56,33 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
   const generateCalendarDays = () => {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-    
+
     const firstDay = new Date(year, month, 1);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
+
     const days = [];
     const currentDate = new Date(startDate);
-    
+
     for (let week = 0; week < 6; week++) {
       for (let day = 0; day < 7; day++) {
         const date = new Date(currentDate);
         const isCurrentMonth = date.getMonth() === month;
         const isSelected = date.toDateString() === selectedDate.toDateString();
         const isToday = date.toDateString() === new Date().toDateString();
-        
+
         days.push({
           date,
           isCurrentMonth,
           isSelected,
           isToday,
-          dayNumber: date.getDate()
+          dayNumber: date.getDate(),
         });
-        
+
         currentDate.setDate(currentDate.getDate() + 1);
       }
     }
-    
+
     return days;
   };
 
@@ -96,22 +99,32 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
   };
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   return (
     <div className="date-picker">
       <div className="date-navigation">
-        <button 
-          className="nav-btn prev-btn" 
+        <button
+          className="nav-btn prev-btn"
           onClick={goToPreviousDay}
           title="Previous day"
         >
           <ChevronLeft size={16} />
         </button>
-        
-        <button 
+
+        <button
           className="current-date-btn"
           onClick={() => setShowCalendar(!showCalendar)}
           title="Select date"
@@ -119,9 +132,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
           <Calendar size={16} />
           <span className="date-text">{formatShortDate(selectedDate)}</span>
         </button>
-        
-        <button 
-          className="nav-btn next-btn" 
+
+        <button
+          className="nav-btn next-btn"
           onClick={goToNextDay}
           title="Next day"
         >
@@ -132,28 +145,24 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
       {showCalendar && (
         <div className="calendar-dropdown">
           <div className="calendar-header">
-            <button 
-              className="calendar-nav-btn" 
-              onClick={goToPreviousMonth}
-            >
+            <button className="calendar-nav-btn" onClick={goToPreviousMonth}>
               <ChevronLeft size={16} />
             </button>
-            
+
             <span className="calendar-month-year">
               {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
             </span>
-            
-            <button 
-              className="calendar-nav-btn" 
-              onClick={goToNextMonth}
-            >
+
+            <button className="calendar-nav-btn" onClick={goToNextMonth}>
               <ChevronRight size={16} />
             </button>
           </div>
 
           <div className="calendar-weekdays">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="weekday">{day}</div>
+              <div key={day} className="weekday">
+                {day}
+              </div>
             ))}
           </div>
 
@@ -178,10 +187,8 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange }) =
           </div>
         </div>
       )}
-      
-      <div className="full-date-display">
-        {formatDate(selectedDate)}
-      </div>
+
+      <div className="full-date-display">{formatDate(selectedDate)}</div>
     </div>
   );
 };

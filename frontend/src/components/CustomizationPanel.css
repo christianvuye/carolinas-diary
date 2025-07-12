@@ -1,5 +1,9 @@
 .customization-panel {
-  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1), rgba(255, 140, 200, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 107, 157, 0.1),
+    rgba(255, 140, 200, 0.1)
+  );
   border: 2px solid rgba(255, 107, 157, 0.2);
   border-radius: 15px;
   padding: 1.5rem;
@@ -257,21 +261,21 @@
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .panel-tabs {
     width: 100%;
     justify-content: center;
   }
-  
+
   .tab-button {
     flex: 1;
     justify-content: center;
   }
-  
+
   .color-grid {
     grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
   }
-  
+
   .color-option {
     width: 35px;
     height: 35px;

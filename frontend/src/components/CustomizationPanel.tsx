@@ -1,5 +1,5 @@
+import { Palette, Sticker, Type } from 'lucide-react';
 import React, { useState } from 'react';
-import { Palette, Type, Sticker } from 'lucide-react';
 import './CustomizationPanel.css';
 
 interface VisualSettings {
@@ -21,18 +21,36 @@ interface CustomizationPanelProps {
 
 const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
   visualSettings,
-  onUpdateSettings
+  onUpdateSettings,
 }) => {
-  const [activeTab, setActiveTab] = useState<'colors' | 'fonts' | 'stickers'>('colors');
+  const [activeTab, setActiveTab] = useState<'colors' | 'fonts' | 'stickers'>(
+    'colors'
+  );
 
   const backgroundColors = [
-    '#ffffff', '#fdf2f8', '#fef3e2', '#f0f9ff', '#f0fdf4',
-    '#faf5ff', '#fff1f2', '#fffbeb', '#f0f0f0', '#f8fafc'
+    '#ffffff',
+    '#fdf2f8',
+    '#fef3e2',
+    '#f0f9ff',
+    '#f0fdf4',
+    '#faf5ff',
+    '#fff1f2',
+    '#fffbeb',
+    '#f0f0f0',
+    '#f8fafc',
   ];
 
   const textColors = [
-    '#000000', '#374151', '#7c2d12', '#be123c', '#7c3aed',
-    '#0369a1', '#047857', '#ea580c', '#dc2626', '#7c2d12'
+    '#000000',
+    '#374151',
+    '#7c2d12',
+    '#be123c',
+    '#7c3aed',
+    '#0369a1',
+    '#047857',
+    '#ea580c',
+    '#dc2626',
+    '#7c2d12',
   ];
 
   const fontFamilies = [
@@ -43,24 +61,71 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
     'Verdana, sans-serif',
     'Courier New, monospace',
     'Impact, sans-serif',
-    'Comic Sans MS, cursive'
+    'Comic Sans MS, cursive',
   ];
 
   const fontSizes = ['14px', '16px', '18px', '20px', '22px', '24px'];
 
   const stickerTypes = [
-    '🌸', '🌺', '🌻', '🌷', '🌹', '💕', '💖', '💗', '💓', '💝',
-    '⭐', '✨', '🌟', '💫', '🌙', '🌈', '🦄', '👑', '💎', '🎀',
-    '🎵', '🎶', '🎨', '🎭', '🎪', '🎡', '🎢', '🎠', '🎈', '🎉'
+    '🌸',
+    '🌺',
+    '🌻',
+    '🌷',
+    '🌹',
+    '💕',
+    '💖',
+    '💗',
+    '💓',
+    '💝',
+    '⭐',
+    '✨',
+    '🌟',
+    '💫',
+    '🌙',
+    '🌈',
+    '🦄',
+    '👑',
+    '💎',
+    '🎀',
+    '🎵',
+    '🎶',
+    '🎨',
+    '🎭',
+    '🎪',
+    '🎡',
+    '🎢',
+    '🎠',
+    '🎈',
+    '🎉',
   ];
 
   const handleStickerAdd = (stickerType: string) => {
+    // Use crypto.getRandomValues() for better randomness (best practice)
+    // Fall back to Math.random() if crypto is not available
+    let x, y;
+
+    try {
+      if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+        const randomArray = new Uint32Array(2);
+        window.crypto.getRandomValues(randomArray);
+        // Type assertion is safe here because getRandomValues guarantees population
+        x = ((randomArray.at(0) as number) / 0xffffffff) * 300;
+        y = ((randomArray.at(1) as number) / 0xffffffff) * 300;
+      } else {
+        throw new Error('crypto not available');
+      }
+    } catch {
+      // Fallback for older browsers or if crypto fails
+      x = Math.random() * 300;
+      y = Math.random() * 300;
+    }
+
     const newSticker = {
       id: Date.now().toString(),
       type: stickerType,
-      position: { x: Math.random() * 300, y: Math.random() * 300 }
+      position: { x, y },
     };
-    
+
     const newStickers = [...visualSettings.stickers, newSticker];
     onUpdateSettings({ stickers: newStickers });
   };
@@ -105,7 +170,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
             <div className="color-group">
               <h4>Background Color</h4>
               <div className="color-grid">
-                {backgroundColors.map((color) => (
+                {backgroundColors.map(color => (
                   <button
                     key={color}
                     className={`color-option ${visualSettings.backgroundColor === color ? 'selected' : ''}`}
@@ -118,7 +183,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
             <div className="color-group">
               <h4>Text Color</h4>
               <div className="color-grid">
-                {textColors.map((color) => (
+                {textColors.map(color => (
                   <button
                     key={color}
                     className={`color-option ${visualSettings.textColor === color ? 'selected' : ''}`}
@@ -136,7 +201,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
             <div className="font-group">
               <h4>Font Family</h4>
               <div className="font-options">
-                {fontFamilies.map((font) => (
+                {fontFamilies.map(font => (
                   <button
                     key={font}
                     className={`font-option ${visualSettings.fontFamily === font ? 'selected' : ''}`}
@@ -151,7 +216,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
             <div className="font-group">
               <h4>Font Size</h4>
               <div className="size-options">
-                {fontSizes.map((size) => (
+                {fontSizes.map(size => (
                   <button
                     key={size}
                     className={`size-option ${visualSettings.fontSize === size ? 'selected' : ''}`}
@@ -169,7 +234,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
           <div className="stickers-section">
             <h4>Add Stickers</h4>
             <div className="sticker-grid">
-              {stickerTypes.map((sticker) => (
+              {stickerTypes.map(sticker => (
                 <button
                   key={sticker}
                   className="sticker-option"
@@ -179,12 +244,12 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                 </button>
               ))}
             </div>
-            
+
             {visualSettings.stickers.length > 0 && (
               <div className="current-stickers">
                 <h4>Current Stickers</h4>
                 <div className="sticker-list">
-                  {visualSettings.stickers.map((sticker) => (
+                  {visualSettings.stickers.map(sticker => (
                     <div key={sticker.id} className="sticker-item">
                       <span className="sticker-preview">{sticker.type}</span>
                       <button

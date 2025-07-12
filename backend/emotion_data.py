@@ -1,3 +1,7 @@
+"""Data for emotion-based journaling prompts and inspirational quotes."""
+
+# flake8: noqa: E501
+
 GRATITUDE_QUESTIONS = [
     "What made you smile today?",
     "Who are you grateful for and why?",
@@ -213,7 +217,10 @@ QUOTES_DATA = {
             "quote": "The way sadness works is one of the strange riddles of the world.",
             "author": "Lemony Snicket",
         },
-        {"quote": "Tears are words that need to be written.", "author": "Paulo Coelho"},
+        {
+            "quote": "Tears are words that need to be written.",
+            "author": "Paulo Coelho",
+        },
         {
             "quote": "Behind every beautiful thing, there's some kind of pain.",
             "author": "Bob Dylan",
@@ -228,7 +235,10 @@ QUOTES_DATA = {
             "quote": "The greatest weapon against stress is our ability to choose one thought over another.",
             "author": "William James",
         },
-        {"quote": "Don't worry about what you can't control.", "author": "John Wooden"},
+        {
+            "quote": "Don't worry about what you can't control.",
+            "author": "John Wooden",
+        },
         {
             "quote": "Take rest; a field that has rested gives a bountiful crop.",
             "author": "Ovid",
@@ -251,7 +261,10 @@ QUOTES_DATA = {
             "quote": "The best time to plant a tree was 20 years ago. The second best time is now.",
             "author": "Chinese Proverb",
         },
-        {"quote": "Adventure is worthwhile in itself.", "author": "Amelia Earhart"},
+        {
+            "quote": "Adventure is worthwhile in itself.",
+            "author": "Amelia Earhart",
+        },
         {
             "quote": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
             "author": "Ralph Waldo Emerson",
@@ -277,7 +290,6 @@ QUOTES_DATA = {
         },
     ],
     "happiness": [
-        {"quote": "The purpose of our lives is to be happy.", "author": "Dalai Lama"},
         {
             "quote": "Happiness is not something ready-made. It comes from your own actions.",
             "author": "Dalai Lama",
@@ -293,9 +305,15 @@ QUOTES_DATA = {
         },
     ],
     "joy": [
-        {"quote": "Joy is not in things; it is in us.", "author": "Richard Wagner"},
+        {
+            "quote": "Joy is not in things; it is in us.",
+            "author": "Richard Wagner",
+        },
         {"quote": "Find joy in the ordinary.", "author": "Max Lucado"},
-        {"quote": "Joy is the simplest form of gratitude.", "author": "Karl Barth"},
+        {
+            "quote": "Joy is the simplest form of gratitude.",
+            "author": "Karl Barth",
+        },
         {
             "quote": "The most wasted of all days is one without laughter.",
             "author": "E.E. Cummings",
@@ -319,7 +337,10 @@ QUOTES_DATA = {
         },
     ],
     "jealousy": [
-        {"quote": "Comparison is the thief of joy.", "author": "Theodore Roosevelt"},
+        {
+            "quote": "Comparison is the thief of joy.",
+            "author": "Theodore Roosevelt",
+        },
         {
             "quote": "The only person you are destined to become is the person you decide to be.",
             "author": "Ralph Waldo Emerson",
@@ -361,7 +382,10 @@ QUOTES_DATA = {
             "quote": "No one can make you feel inferior without your consent.",
             "author": "Eleanor Roosevelt",
         },
-        {"quote": "You are enough just as you are.", "author": "Meghan Markle"},
+        {
+            "quote": "You are enough just as you are.",
+            "author": "Meghan Markle",
+        },
         {
             "quote": "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
             "author": "Ralph Waldo Emerson",
