@@ -4,10 +4,10 @@ import { logger } from '../services/logger';
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
-  window.location.hostname === '[::1]' ||
-  window.location.hostname.match(
-    /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-  )
+    window.location.hostname === '[::1]' ||
+    window.location.hostname.match(
+      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    )
 );
 
 type Config = {
@@ -30,7 +30,7 @@ export function register(config?: Config) {
         navigator.serviceWorker.ready.then(() => {
           logger.info(
             'This web app is being served cache-first by a service worker. ' +
-            'To learn more, visit https://cra.link/PWA'
+              'To learn more, visit https://cra.link/PWA'
           );
         });
       } else {
