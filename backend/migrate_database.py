@@ -13,7 +13,7 @@ from pathlib import Path
 # flake8: noqa: E501
 
 
-def backup_database(db_path):
+def backup_database(db_path: Path) -> Path:
     """Create a backup of the current database"""
     backup_path = f"{db_path.stem}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
     backup_full_path = db_path.parent / backup_path
@@ -24,7 +24,7 @@ def backup_database(db_path):
     return backup_full_path
 
 
-def check_migration_needed(conn):
+def check_migration_needed(conn: sqlite3.Connection) -> bool:
     """Check if migration is needed"""
     cursor = conn.cursor()
 
@@ -40,7 +40,7 @@ def check_migration_needed(conn):
     return not (users_table_exists and has_user_id)
 
 
-def migrate_database(db_path):
+def migrate_database(db_path: Path) -> bool:
     """Main migration function"""
     db_path = Path(db_path)
 
@@ -189,7 +189,7 @@ def migrate_database(db_path):
         conn.close()
 
 
-def main():
+def main() -> None:
     """Main function"""
     db_path = Path(__file__).parent / "carolinas_diary.db"
     success = migrate_database(db_path)
@@ -198,8 +198,6 @@ def main():
         print("\n✅ Database migration completed successfully!")
     else:
         print("\n❌ Database migration failed!")
-
-    return success
 
 
 if __name__ == "__main__":

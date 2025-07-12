@@ -15,7 +15,7 @@ from models import EmotionQuestion, GratitudeQuestion, Quote
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def init_database():
+def init_database() -> None:
     """Initialize the database with all tables and initial data"""
     print("Initializing database...")
 
@@ -215,7 +215,7 @@ def init_database():
         db.close()
 
 
-def main():
+def main() -> None:
     """Main function"""
     init_database()
     print("\n🎉 Database initialization completed!")

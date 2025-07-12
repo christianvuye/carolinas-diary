@@ -40,6 +40,11 @@ safety-report*.json
 safety-report*.txt
 bandit-report*.json
 
+# MyPy reports (generated artifacts)
+mypy-reports/
+backend/mypy-reports/
+**/mypy-reports/
+
 # Node.js
 node_modules/
 npm-debug.log*

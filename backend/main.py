@@ -3,6 +3,7 @@
 import os
 import random
 from datetime import date, datetime
+from typing import Any, Generator
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
@@ -46,7 +47,7 @@ app.add_middleware(
 
 
 # Dependency to get database session
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     Database session dependency that handles session lifecycle.
     """
@@ -70,7 +71,7 @@ def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User:
 
 # Initialize database with questions and quotes
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     """Initialize database with questions and quotes on startup."""
     db = SessionLocal()
     try:
@@ -78,18 +79,18 @@ async def startup_event():
         if db.query(GratitudeQuestion).count() == 0:
             # Add gratitude questions
             for question in GRATITUDE_QUESTIONS:
-                db_question = GratitudeQuestion(question=question)
-                db.add(db_question)
+                gratitude_question = GratitudeQuestion(question=question)
+                db.add(gratitude_question)
 
         if db.query(EmotionQuestion).count() == 0:
             # Add emotion questions
             for emotion, questions in EMOTION_QUESTIONS.items():
                 for question in questions:
-                    db_question = EmotionQuestion(
+                    emotion_question = EmotionQuestion(
                         emotion=emotion,
                         question=question,
                     )
-                    db.add(db_question)
+                    db.add(emotion_question)
 
         if db.query(Quote).count() == 0:
             # Add quotes
@@ -111,7 +112,7 @@ async def startup_event():
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """
     Root endpoint returning a welcome message.
     """
@@ -121,9 +122,9 @@ async def root():
 # User management endpoints
 @app.post("/users/register", response_model=UserResponse)
 async def register_user(
-    user_data: dict = Depends(get_current_user_dev),
+    user_data: dict[str, Any] = Depends(get_current_user_dev),
     db: Session = Depends(get_db),
-):
+) -> User:
     """
     Register a new user or return existing user
     """
@@ -149,9 +150,9 @@ async def register_user(
 
 @app.get("/users/me", response_model=UserResponse)
 async def get_current_user_info(
-    user_data: dict = Depends(get_current_user_dev),
+    user_data: dict[str, Any] = Depends(get_current_user_dev),
     db: Session = Depends(get_db),
-):
+) -> User:
     """
     Get current user information
     """
@@ -165,9 +166,9 @@ async def get_current_user_info(
 @app.put("/users/me", response_model=UserResponse)
 async def update_current_user(
     user_update: UserUpdate,
-    user_data: dict = Depends(get_current_user_dev),
+    user_data: dict[str, Any] = Depends(get_current_user_dev),
     db: Session = Depends(get_db),
-):
+) -> User:
     """
     Update current user information
     """
@@ -192,7 +193,7 @@ async def update_current_user(
 
 
 @app.get("/gratitude-questions")
-async def get_gratitude_questions(db: Session = Depends(get_db)):
+async def get_gratitude_questions(db: Session = Depends(get_db)) -> list[str]:
     """Get 5 random gratitude questions for today"""
     questions = db.query(GratitudeQuestion).all()
     if len(questions) < 5:
@@ -201,7 +202,9 @@ async def get_gratitude_questions(db: Session = Depends(get_db)):
 
 
 @app.get("/emotion-questions/{emotion}")
-async def get_emotion_questions(emotion: Emotion, db: Session = Depends(get_db)):
+async def get_emotion_questions(
+    emotion: Emotion, db: Session = Depends(get_db)
+) -> list[EmotionQuestionResponse]:
     """Get questions for a specific emotion"""
     questions = (
         db.query(EmotionQuestion).filter(EmotionQuestion.emotion == emotion.value).all()
@@ -210,7 +213,9 @@ async def get_emotion_questions(emotion: Emotion, db: Session = Depends(get_db))
 
 
 @app.get("/quote/{emotion}")
-async def get_quote_for_emotion(emotion: Emotion, db: Session = Depends(get_db)):
+async def get_quote_for_emotion(
+    emotion: Emotion, db: Session = Depends(get_db)
+) -> dict[str, str]:
     """Get a random quote for a specific emotion"""
     quotes = db.query(Quote).filter(Quote.emotion == emotion.value).all()
     if not quotes:
@@ -225,9 +230,9 @@ async def get_quote_for_emotion(emotion: Emotion, db: Session = Depends(get_db))
 @app.post("/journal-entry", response_model=JournalEntryResponse)
 async def create_journal_entry(
     entry: JournalEntryCreate,
-    user_data: dict = Depends(get_current_user),
+    user_data: dict[str, Any] = Depends(get_current_user),
     db: Session = Depends(get_db),
-):
+) -> JournalEntry:
     """Create or update a journal entry for today"""
     today = date.today()
 
@@ -272,9 +277,9 @@ async def create_journal_entry(
 @app.get("/journal-entry/{entry_date}", response_model=JournalEntryResponse)
 async def get_journal_entry(
     entry_date: str,
-    user_data: dict = Depends(get_current_user),
+    user_data: dict[str, Any] = Depends(get_current_user),
     db: Session = Depends(get_db),
-):
+) -> JournalEntry:
     """Get journal entry for a specific date"""
     try:
         entry_date_obj = datetime.strptime(entry_date, "%Y-%m-%d").date()
@@ -308,9 +313,9 @@ async def get_journal_entry(
 async def get_all_journal_entries(
     page: int = 1,
     page_size: int = 10,
-    user_data: dict = Depends(get_current_user),
+    user_data: dict[str, Any] = Depends(get_current_user),
     db: Session = Depends(get_db),
-):
+) -> PaginatedJournalEntriesResponse:
     """Get paginated journal entries for the current user"""
     # Validate pagination parameters
     if page < 1:
@@ -360,7 +365,7 @@ async def get_all_journal_entries(
 
 
 @app.get("/emotions")
-async def get_available_emotions():
+async def get_available_emotions() -> list[str]:
     """Get list of available emotions"""
     return [emotion.value for emotion in Emotion]
 
