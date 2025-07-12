@@ -1,7 +1,39 @@
+/* eslint-disable no-console */
 // Carolina's Diary Service Worker
 const CACHE_NAME = 'carolinas-diary-v1';
 const STATIC_CACHE = 'carolinas-diary-static-v1';
 const DYNAMIC_CACHE = 'carolinas-diary-dynamic-v1';
+
+// Simple logging function for service worker
+function swLog(level, message, data = null) {
+  const isDevelopment = true; // Can be set based on environment
+  
+  if (isDevelopment) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] SW ${level.toUpperCase()}: ${message}`;
+    
+    switch (level) {
+      case 'info':
+        console.info(logMessage, data || '');
+        break;
+      case 'warn':
+        console.warn(logMessage, data || '');
+        break;
+      case 'error':
+        console.error(logMessage, data || '');
+        break;
+      default:
+        console.log(logMessage, data || '');
+    }
+  }
+  
+  // In production, you could send logs to main thread:
+  // self.clients.matchAll().then(clients => {
+  //   clients.forEach(client => {
+  //     client.postMessage({ type: 'SW_LOG', level, message, data });
+  //   });
+  // });
+}
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -17,19 +49,19 @@ const STATIC_ASSETS = [
 // Install event - cache static assets
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  swLog('info', 'Installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('Service Worker: Caching static assets');
+        swLog('info', 'Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
-        console.log('Service Worker: Installation complete');
+        swLog('info', 'Installation complete');
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('Service Worker: Installation failed', error);
+        swLog('error', 'Installation failed', error);
       })
   );
 });
@@ -37,21 +69,21 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 //Loading..
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  swLog('info', 'Activating...');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-              console.log('Service Worker: Deleting old cache', cacheName);
+              swLog('info', 'Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
       .then(() => {
-        console.log('Service Worker: Activation complete');
+        swLog('info', 'Activation complete');
         return self.clients.claim();
       })
   );
@@ -76,7 +108,7 @@ self.addEventListener('fetch', (event) => {
       .then((cachedResponse) => {
         // Return cached version if available
         if (cachedResponse) {
-          console.log('Service Worker: Serving from cache', request.url);
+          swLog('info', 'Serving from cache', request.url);
           return cachedResponse;
         }
 
@@ -94,14 +126,14 @@ self.addEventListener('fetch', (event) => {
             // Cache dynamic content
             caches.open(DYNAMIC_CACHE)
               .then((cache) => {
-                console.log('Service Worker: Caching dynamic content', request.url);
+                swLog('info', 'Caching dynamic content', request.url);
                 cache.put(request, responseToCache);
               });
 
             return response;
           })
           .catch((error) => {
-            console.log('Service Worker: Fetch failed, serving offline page', error);
+            swLog('warn', 'Fetch failed, serving offline page', error);
 
             // Return a custom offline page for navigation requests
             if (request.destination === 'document') {
@@ -123,7 +155,7 @@ self.addEventListener('fetch', (event) => {
 
 // Background sync for saving journal entries when back online
 self.addEventListener('sync', (event) => {
-  console.log('Service Worker: Background sync triggered', event.tag);
+  swLog('info', 'Background sync triggered', event.tag);
 
   if (event.tag === 'journal-sync') {
     event.waitUntil(syncJournalEntries());
@@ -133,7 +165,7 @@ self.addEventListener('sync', (event) => {
 // Sync journal entries from localStorage to server
 async function syncJournalEntries() {
   try {
-    console.log('Service Worker: Syncing journal entries...');
+    swLog('info', 'Syncing journal entries...');
 
     // This would typically sync with your backend
     // For now, we'll just log that sync would happen
@@ -145,13 +177,13 @@ async function syncJournalEntries() {
       });
     });
   } catch (error) {
-    console.error('Service Worker: Sync failed', error);
+    swLog('error', 'Sync failed', error);
   }
 }
 
 // Push notifications (for future features)
 self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push message received');
+  swLog('info', 'Push message received');
 
   const options = {
     body: event.data ? event.data.text() : 'New notification from Carolina\'s Diary',
@@ -183,7 +215,7 @@ self.addEventListener('push', (event) => {
 
 // Notification click handling
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification click received');
+  swLog('info', 'Notification click received');
 
   event.notification.close();
 
@@ -194,4 +226,4 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-console.log('Service Worker: Registered successfully');
+swLog('info', 'Registered successfully');

@@ -1,11 +1,13 @@
 // Service Worker Registration for Carolina's Diary PWA
 
+import { logger } from '../services/logger';
+
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
-    window.location.hostname === '[::1]' ||
-    window.location.hostname.match(
-      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-    )
+  window.location.hostname === '[::1]' ||
+  window.location.hostname.match(
+    /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+  )
 );
 
 type Config = {
@@ -26,9 +28,9 @@ export function register(config?: Config) {
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
         navigator.serviceWorker.ready.then(() => {
-          console.log(
+          logger.info(
             'This web app is being served cache-first by a service worker. ' +
-              'To learn more, visit https://cra.link/PWA'
+            'To learn more, visit https://cra.link/PWA'
           );
         });
       } else {
@@ -42,7 +44,7 @@ function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
     .register(swUrl)
     .then(registration => {
-      console.log('Service Worker registered successfully:', registration);
+      logger.info('Service Worker registered successfully', { registration });
 
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
@@ -52,14 +54,14 @@ function registerValidSW(swUrl: string, config?: Config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              console.log(
+              logger.info(
                 'New content is available and will be used when all tabs for this page are closed.'
               );
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
               }
             } else {
-              console.log('Content is cached for offline use.');
+              logger.info('Content is cached for offline use.');
               if (config && config.onSuccess) {
                 config.onSuccess(registration);
               }
@@ -69,7 +71,7 @@ function registerValidSW(swUrl: string, config?: Config) {
       };
     })
     .catch(error => {
-      console.error('Error during service worker registration:', error);
+      logger.error('Error during service worker registration', { error });
     });
 }
 
@@ -93,7 +95,7 @@ function checkValidServiceWorker(swUrl: string, config?: Config) {
       }
     })
     .catch(() => {
-      console.log(
+      logger.info(
         'No internet connection found. App is running in offline mode.'
       );
     });
@@ -106,7 +108,7 @@ export function unregister() {
         registration.unregister();
       })
       .catch(error => {
-        console.error(error.message);
+        logger.error('Service worker unregister failed', { error });
       });
   }
 }
@@ -122,14 +124,14 @@ export class PWAInstallPrompt {
 
   private init() {
     window.addEventListener('beforeinstallprompt', e => {
-      console.log('PWA: Install prompt available');
+      logger.info('PWA: Install prompt available');
       e.preventDefault();
       this.deferredPrompt = e;
       this.showInstallButton();
     });
 
     window.addEventListener('appinstalled', () => {
-      console.log('PWA: App was installed');
+      logger.info('PWA: App was installed');
       this.isInstalled = true;
       this.hideInstallButton();
     });
@@ -145,13 +147,13 @@ export class PWAInstallPrompt {
 
   public async promptInstall(): Promise<boolean> {
     if (!this.deferredPrompt) {
-      console.log('PWA: No install prompt available');
+      logger.info('PWA: No install prompt available');
       return false;
     }
 
     this.deferredPrompt.prompt();
     const result = await this.deferredPrompt.userChoice;
-    console.log('PWA: User choice:', result);
+    logger.info('PWA: User choice', { result });
 
     this.deferredPrompt = null;
     this.hideInstallButton();

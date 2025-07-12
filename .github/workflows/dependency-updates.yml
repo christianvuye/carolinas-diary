@@ -5,6 +5,11 @@ on:
     - cron: '0 8 * * 1' # Run every Monday at 8 AM UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   update-dependencies:
     runs-on: ubuntu-latest
@@ -261,4 +266,4 @@ jobs:
               labels: ['security', 'dependencies', 'automated']
             });
 
-            console.log('Created security issue:', issue.data.number);
+            core.info(`Created security issue: ${issue.data.number}`);

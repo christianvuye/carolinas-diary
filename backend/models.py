@@ -3,18 +3,10 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from database import Base
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Date,
-    DateTime,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-)
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from database import Base
 
 # flake8: noqa: E501
 

@@ -1,13 +1,18 @@
 """FastAPI backend application for Carolina's Diary journaling app."""
 
+import os
 import random
 from datetime import date, datetime
+
 import uvicorn
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import DatabaseError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from auth import get_current_user, get_current_user_dev
 from database import Base, SessionLocal, engine
 from emotion_data import EMOTION_QUESTIONS, GRATITUDE_QUESTIONS, QUOTES_DATA
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from models import EmotionQuestion, GratitudeQuestion, JournalEntry, Quote, User
 from schemas import (
     Emotion,
@@ -19,8 +24,6 @@ from schemas import (
     UserResponse,
     UserUpdate,
 )
-from sqlalchemy.exc import DatabaseError, SQLAlchemyError
-from sqlalchemy.orm import Session
 
 # flake8: noqa: E501
 
@@ -45,19 +48,7 @@ app.add_middleware(
 # Dependency to get database session
 def get_db():
     """
-    Provides a generator for database session handling, ensuring the session
-    is properly opened and closed.
-    Parameters:
-        None
-    Returns:
-        - generator: A context manager that yields a SQLAlchemy database
-        session.
-    Example:
-        - Using the FastAPI dependency injection, a route can access the
-        database session as follows:
-          @app.get("/items/")
-          def read_items(db: Session = Depends(get_db)):
-              return db.query(Item).all()
+    Database session dependency that handles session lifecycle.
     """
     db = SessionLocal()
     try:
@@ -122,11 +113,7 @@ async def startup_event():
 @app.get("/")
 async def root():
     """
-    Serves as the root endpoint, providing a welcome message.
-    Returns:
-        - dict: A dictionary containing a welcome message.
-    Example:
-        - root() -> {"message": "Welcome to Carolina's Diary"}
+    Root endpoint returning a welcome message.
     """
     return {"message": "Welcome to Carolina's Diary"}
 
@@ -232,6 +219,9 @@ async def get_quote_for_emotion(emotion: Emotion, db: Session = Depends(get_db))
     return {"quote": selected_quote.quote, "author": selected_quote.author}
 
 
+#  Move business logic to service layer for better architecture. Create a JournalEntryService class, then use it in the route handler.
+
+
 @app.post("/journal-entry", response_model=JournalEntryResponse)
 async def create_journal_entry(
     entry: JournalEntryCreate,
@@ -313,6 +303,7 @@ async def get_journal_entry(
         ) from exc
 
 
+# consider extracting the pagination logic to a service layer for reusability (a reusable pagination service)
 @app.get("/journal-entries", response_model=PaginatedJournalEntriesResponse)
 async def get_all_journal_entries(
     page: int = 1,
@@ -320,12 +311,7 @@ async def get_all_journal_entries(
     user_data: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get paginated journal entries for the current user
-
-    Args:
-        page: Page number (starts from 1)
-        page_size: Number of entries per page (max 100)
-    """
+    """Get paginated journal entries for the current user"""
     # Validate pagination parameters
     if page < 1:
         raise HTTPException(status_code=400, detail="Page number must be >= 1")
@@ -380,4 +366,6 @@ async def get_available_emotions():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    host = os.getenv("HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host=host, port=port)

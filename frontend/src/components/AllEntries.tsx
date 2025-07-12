@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext';
 import { firestoreService, JournalEntryFirestore } from '../services/firestore';
+import { logger } from '../services/logger';
 import './AllEntries.css';
 
 // Global cache for entries to persist across component mounts
@@ -140,7 +141,7 @@ const AllEntries: React.FC = () => {
       // Fallback to Firestore
       await loadFromFirestore(userId, isBackgroundRefresh);
     } catch (error) {
-      console.error('Error loading entries:', error);
+      logger.error('Error loading entries', { error });
       setLoading(false);
     }
   };
@@ -178,7 +179,7 @@ const AllEntries: React.FC = () => {
         localStorage.setItem(allEntriesKey, JSON.stringify(allEntries));
       }
     } catch (error) {
-      console.error('Error loading from Firestore:', error);
+      logger.error('Error loading from Firestore', { error });
       if (!isBackgroundRefresh) {
         setLoading(false);
       }
@@ -385,7 +386,7 @@ const AllEntries: React.FC = () => {
                         return new Date().toLocaleDateString();
                       }
                     } catch (error) {
-                      console.warn('Error formatting date:', error);
+                      logger.warn('Error formatting date', { error });
                       return new Date().toLocaleDateString();
                     }
                   })()}

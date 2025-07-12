@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import firebase_admin
 from fastapi import Depends, HTTPException, Request

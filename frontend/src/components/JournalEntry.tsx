@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { VisualSettings, apiService } from '../services/api';
 import { firestoreService } from '../services/firestore';
+import { logger } from '../services/logger';
 
 import { refreshEntriesCache } from './AllEntries';
 import CustomizationPanel from './CustomizationPanel';
@@ -144,7 +145,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
         }
       }
     } catch (error) {
-      console.error('Error loading journal entry:', error);
+      logger.error('Error loading journal entry', { error });
     } finally {
       setIsInitialized(true);
     }
@@ -248,7 +249,7 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       // Refresh entries cache to show updated data
       refreshEntriesCache(userId);
     } catch (error) {
-      console.error('Error saving journal entry:', error);
+      logger.error('Error saving journal entry', { error });
     } finally {
       setIsLoading(false);
     }

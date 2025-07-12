@@ -2,6 +2,7 @@ import { Download, X, Smartphone } from 'lucide-react';
 import React from 'react';
 
 import { usePWA } from '../hooks/usePWA';
+import { logger } from '../services/logger';
 import './PWAInstallBanner.css';
 
 const PWAInstallBanner: React.FC = () => {
@@ -16,11 +17,10 @@ const PWAInstallBanner: React.FC = () => {
     try {
       const success = await installApp();
       if (success) {
-        // Use console.log for development, could be replaced with proper logging
-        console.log('PWA installed successfully');
+        logger.info('PWA installed successfully');
       }
     } catch (error) {
-      console.error('PWA installation failed:', error);
+      logger.error('PWA installation failed', { error });
     }
   };
 
@@ -28,7 +28,7 @@ const PWAInstallBanner: React.FC = () => {
     try {
       dismissInstallPrompt();
     } catch (error) {
-      console.error('Error dismissing install prompt:', error);
+      logger.error('Error dismissing install prompt', { error });
     }
   };
 

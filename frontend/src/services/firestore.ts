@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../firebase/config';
+import { logger } from './logger';
 
 export interface JournalEntryFirestore {
   id?: string;
@@ -46,7 +47,7 @@ export const firestoreService = {
       'id' | 'userId' | 'date' | 'createdAt' | 'updatedAt'
     >
   ): Promise<void> {
-    console.log('Saving journal entry:', { userId, date, entryData });
+    logger.debug('Saving journal entry', { userId, date, entryData });
 
     const entryId = `${userId}_${date}`;
     const entryRef = doc(db, 'journal_entries', entryId);
@@ -65,9 +66,9 @@ export const firestoreService = {
       updatedAt: now,
     };
 
-    console.log('Saving entry to Firestore:', entryToSave);
+    logger.debug('Saving entry to Firestore', { entryToSave });
     await setDoc(entryRef, entryToSave);
-    console.log('Entry saved successfully');
+    logger.info('Entry saved successfully');
   },
 
   // Get a specific journal entry by date
@@ -137,12 +138,7 @@ export const firestoreService = {
     userId: string,
     limitCount = 10
   ): Promise<JournalEntryFirestore[]> {
-    console.log(
-      'Fetching recent entries for user:',
-      userId,
-      'limit:',
-      limitCount
-    );
+    logger.debug('Fetching recent entries for user', { userId, limitCount });
 
     const entriesRef = collection(db, 'journal_entries');
     const q = query(
@@ -157,11 +153,11 @@ export const firestoreService = {
 
     querySnapshot.forEach(doc => {
       const entry = doc.data() as JournalEntryFirestore;
-      console.log('Found entry:', entry);
+      logger.debug('Found entry', { entry });
       entries.push(entry);
     });
 
-    console.log('Total entries found:', entries.length);
+    logger.debug('Total entries found', { count: entries.length });
     return entries;
   },
 };

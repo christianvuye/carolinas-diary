@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 import { apiService } from '../services/api';
+import { logger } from '../services/logger';
 import './GratitudeSection.css';
 
 interface GratitudeSectionProps {
@@ -25,7 +26,7 @@ const GratitudeSection: React.FC<GratitudeSectionProps> = ({
       const response = await apiService.getGratitudeQuestions();
       setQuestions(response || []);
     } catch (error) {
-      console.error('Error loading gratitude questions:', error);
+      logger.error('Error loading gratitude questions', { error });
       // Fallback questions when backend is not available
       setQuestions([
         'What made you smile today?',

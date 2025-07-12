@@ -2,6 +2,7 @@ import { Brain, Quote } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 import { apiService } from '../services/api';
+import { logger } from '../services/logger';
 import './EmotionSection.css';
 
 interface EmotionSectionProps {
@@ -48,7 +49,7 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       const response = await apiService.getEmotions();
       setEmotions(response || []);
     } catch (error) {
-      console.error('Error loading emotions:', error);
+      logger.error('Error loading emotions', { error });
       // Fallback emotions when backend is not available
       setEmotions([
         'happiness',
@@ -73,7 +74,7 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       const response = await apiService.getEmotionQuestions(selectedEmotion);
       setQuestions(response || []);
     } catch (error) {
-      console.error('Error loading emotion questions:', error);
+      logger.error('Error loading emotion questions', { error });
       // Fallback questions when backend is not available
       setQuestions([
         { id: 1, question: `What triggered your ${selectedEmotion} today?` },
@@ -92,7 +93,7 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
       const response = await apiService.getQuote(selectedEmotion);
       setQuote(response || null);
     } catch (error) {
-      console.error('Error loading quote:', error);
+      logger.error('Error loading quote', { error });
     }
   };
 

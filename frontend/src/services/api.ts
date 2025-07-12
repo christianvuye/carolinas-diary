@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { auth } from '../firebase/config';
+import { logger } from './logger';
 
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
@@ -34,7 +35,7 @@ api.interceptors.response.use(
   error => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      console.error('Unauthorized access - redirecting to login');
+      logger.error('Unauthorized access - redirecting to login');
       window.location.href = '/login';
     }
     return Promise.reject(error);

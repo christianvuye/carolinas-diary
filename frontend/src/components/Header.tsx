@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext';
+import { logger } from '../services/logger';
 
 import './Header.css';
 
@@ -15,7 +16,7 @@ const Header: React.FC = () => {
     try {
       await logout();
     } catch (error) {
-      console.error('Failed to logout:', error);
+      logger.error('Failed to logout', { error });
     }
   };
 

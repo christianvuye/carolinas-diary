@@ -18,6 +18,7 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 import Register from './components/Register';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { apiService } from './services/api';
+import { logger } from './services/logger';
 
 function JournalPage() {
   const [searchParams] = useSearchParams();
@@ -30,7 +31,9 @@ function JournalPage() {
   // Register user when they first authenticate
   useEffect(() => {
     if (currentUser) {
-      apiService.registerUser().catch(console.error);
+      apiService.registerUser().catch(error => {
+        logger.error('Failed to register user', { error });
+      });
     }
   }, [currentUser]);
 
