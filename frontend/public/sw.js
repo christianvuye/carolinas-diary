@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 // Carolina's Diary Service Worker
-const CACHE_NAME = 'carolinas-diary-v1';
 const STATIC_CACHE = 'carolinas-diary-static-v1';
 const DYNAMIC_CACHE = 'carolinas-diary-dynamic-v1';
 
@@ -48,11 +47,12 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   swLog('info', 'Installing...');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
-      .then((cache) => {
+    caches
+      .open(STATIC_CACHE)
+      .then(cache => {
         swLog('info', 'Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
@@ -60,7 +60,7 @@ self.addEventListener('install', (event) => {
         swLog('info', 'Installation complete');
         return self.skipWaiting();
       })
-      .catch((error) => {
+      .catch(error => {
         swLog('error', 'Installation failed', error);
       })
   );
@@ -68,17 +68,19 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 //Loading..
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   swLog('info', 'Activating...');
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
+    caches
+      .keys()
+      .then(cacheNames => {
         return Promise.all(
-          cacheNames.map((cacheName) => {
+          cacheNames.map(cacheName => {
             if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
               swLog('info', 'Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
+            return Promise.resolve();
           })
         );
       })
@@ -90,7 +92,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch event - serve cached content
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   const { request } = event;
 
   // Skip non-GET requests
@@ -104,57 +106,59 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        // Return cached version if available
-        if (cachedResponse) {
-          swLog('info', 'Serving from cache', request.url);
-          return cachedResponse;
-        }
+    caches.match(request).then(cachedResponse => {
+      // Return cached version if available
+      if (cachedResponse) {
+        swLog('info', 'Serving from cache', request.url);
+        return cachedResponse;
+      }
 
-        // Fetch from network and cache dynamic content
-        return fetch(request)
-          .then((response) => {
-            // Check if valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone the response
-            const responseToCache = response.clone();
-
-            // Cache dynamic content
-            caches.open(DYNAMIC_CACHE)
-              .then((cache) => {
-                swLog('info', 'Caching dynamic content', request.url);
-                cache.put(request, responseToCache);
-              });
-
+      // Fetch from network and cache dynamic content
+      return fetch(request)
+        .then(response => {
+          // Check if valid response
+          if (
+            !response ||
+            response.status !== 200 ||
+            response.type !== 'basic'
+          ) {
             return response;
-          })
-          .catch((error) => {
-            swLog('warn', 'Fetch failed, serving offline page', error);
+          }
 
-            // Return a custom offline page for navigation requests
-            if (request.destination === 'document') {
-              return caches.match('/');
-            }
+          // Clone the response
+          const responseToCache = response.clone();
 
-            // For other requests, return a simple response
-            return new Response('Offline content not available', {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({
-                'Content-Type': 'text/plain'
-              })
-            });
+          // Cache dynamic content
+          caches.open(DYNAMIC_CACHE).then(cache => {
+            swLog('info', 'Caching dynamic content', request.url);
+            cache.put(request, responseToCache);
           });
-      })
+
+          return response;
+        })
+        .catch(error => {
+          swLog('warn', 'Fetch failed, serving offline page', error);
+
+          // Return a custom offline page for navigation requests
+          if (request.destination === 'document') {
+            return caches.match('/');
+          }
+
+          // For other requests, return a simple response
+          return new Response('Offline content not available', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({
+              'Content-Type': 'text/plain',
+            }),
+          });
+        });
+    })
   );
 });
 
 // Background sync for saving journal entries when back online
-self.addEventListener('sync', (event) => {
+self.addEventListener('sync', event => {
   swLog('info', 'Background sync triggered', event.tag);
 
   if (event.tag === 'journal-sync') {
@@ -173,7 +177,7 @@ async function syncJournalEntries() {
     allClients.forEach(client => {
       client.postMessage({
         type: 'SYNC_COMPLETE',
-        message: 'Journal entries synced successfully'
+        message: 'Journal entries synced successfully',
       });
     });
   } catch (error) {
@@ -182,47 +186,47 @@ async function syncJournalEntries() {
 }
 
 // Push notifications (for future features)
-self.addEventListener('push', (event) => {
+self.addEventListener('push', event => {
   swLog('info', 'Push message received');
 
   const options = {
-    body: event.data ? event.data.text() : 'New notification from Carolina\'s Diary',
+    body: event.data
+      ? event.data.text()
+      : "New notification from Carolina's Diary",
     icon: '/logo192.png',
     badge: '/logo192.png',
     vibrate: [200, 100, 200],
     data: {
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      primaryKey: 1,
     },
     actions: [
       {
         action: 'explore',
         title: 'Open App',
-        icon: '/logo192.png'
+        icon: '/logo192.png',
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/logo192.png'
-      }
-    ]
+        icon: '/logo192.png',
+      },
+    ],
   };
 
   event.waitUntil(
-    self.registration.showNotification('Carolina\'s Diary', options)
+    self.registration.showNotification("Carolina's Diary", options)
   );
 });
 
 // Notification click handling
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', event => {
   swLog('info', 'Notification click received');
 
   event.notification.close();
 
   if (event.action === 'explore') {
-    event.waitUntil(
-      self.clients.openWindow('/')
-    );
+    event.waitUntil(self.clients.openWindow('/'));
   }
 });
 

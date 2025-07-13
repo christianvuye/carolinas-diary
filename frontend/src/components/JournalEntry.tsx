@@ -345,7 +345,9 @@ const JournalEntry: React.FC<JournalEntryProps> = ({ date, onDateChange }) => {
       <div className="journal-footer">
         {!showPostSaveOptions ? (
           <button
-            className={`save-btn ${isLoading ? 'saving' : ''} ${isSaved ? 'saved' : ''}`}
+            className={`save-btn ${isLoading ? 'saving' : ''} ${
+              isSaved ? 'saved' : ''
+            }`}
             onClick={saveJournalEntry}
             disabled={isLoading}
           >

@@ -31,14 +31,18 @@ const Header: React.FC = () => {
           {currentUser && (
             <nav className="header-nav">
               <button
-                className={`nav-btn ${location.pathname === '/' ? 'active' : ''}`}
+                className={`nav-btn ${
+                  location.pathname === '/' ? 'active' : ''
+                }`}
                 onClick={() => navigate('/')}
               >
                 <Edit3 size={16} />
                 Write
               </button>
               <button
-                className={`nav-btn ${location.pathname === '/entries' ? 'active' : ''}`}
+                className={`nav-btn ${
+                  location.pathname === '/entries' ? 'active' : ''
+                }`}
                 onClick={() => navigate('/entries')}
               >
                 <BookOpen size={16} />

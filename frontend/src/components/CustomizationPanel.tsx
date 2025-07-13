@@ -174,7 +174,9 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                 {backgroundColors.map(color => (
                   <button
                     key={color}
-                    className={`color-option ${visualSettings.backgroundColor === color ? 'selected' : ''}`}
+                    className={`color-option ${
+                      visualSettings.backgroundColor === color ? 'selected' : ''
+                    }`}
                     style={{ backgroundColor: color }}
                     onClick={() => onUpdateSettings({ backgroundColor: color })}
                   />
@@ -187,7 +189,9 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                 {textColors.map(color => (
                   <button
                     key={color}
-                    className={`color-option ${visualSettings.textColor === color ? 'selected' : ''}`}
+                    className={`color-option ${
+                      visualSettings.textColor === color ? 'selected' : ''
+                    }`}
                     style={{ backgroundColor: color }}
                     onClick={() => onUpdateSettings({ textColor: color })}
                   />
@@ -205,7 +209,9 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                 {fontFamilies.map(font => (
                   <button
                     key={font}
-                    className={`font-option ${visualSettings.fontFamily === font ? 'selected' : ''}`}
+                    className={`font-option ${
+                      visualSettings.fontFamily === font ? 'selected' : ''
+                    }`}
                     style={{ fontFamily: font }}
                     onClick={() => onUpdateSettings({ fontFamily: font })}
                   >
@@ -220,7 +226,9 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                 {fontSizes.map(size => (
                   <button
                     key={size}
-                    className={`size-option ${visualSettings.fontSize === size ? 'selected' : ''}`}
+                    className={`size-option ${
+                      visualSettings.fontSize === size ? 'selected' : ''
+                    }`}
                     onClick={() => onUpdateSettings({ fontSize: size })}
                   >
                     {size}

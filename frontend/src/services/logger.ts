@@ -55,7 +55,9 @@ class Logger {
 
     // In development, use console methods
     if (this.isDevelopment) {
-      const consoleMessage = `[${logEntry.timestamp}] ${level.toUpperCase()}: ${message}`;
+      const consoleMessage = `[${
+        logEntry.timestamp
+      }] ${level.toUpperCase()}: ${message}`;
 
       switch (level) {
         case LogLevel.DEBUG:

@@ -1,16 +1,16 @@
 {
-    "atLeast": 95,
-    "detail": true,
-    "strict": true,
-    "ignoreFiles": [
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "**/*.spec.ts",
-        "**/*.spec.tsx",
-        "src/setupTests.ts",
-        "src/reportWebVitals.ts"
-    ],
-    "ignoreCatch": true,
-    "ignoreUnreadAnything": false,
-    "cache": true
+  "atLeast": 95,
+  "detail": true,
+  "strict": true,
+  "ignoreFiles": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/setupTests.ts",
+    "src/reportWebVitals.ts"
+  ],
+  "ignoreCatch": true,
+  "ignoreUnreadAnything": false,
+  "cache": true
 }

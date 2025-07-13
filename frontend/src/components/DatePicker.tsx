@@ -172,7 +172,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 key={index}
                 className={`calendar-day ${
                   day.isCurrentMonth ? 'current-month' : 'other-month'
-                } ${day.isSelected ? 'selected' : ''} ${day.isToday ? 'today' : ''}`}
+                } ${day.isSelected ? 'selected' : ''} ${
+                  day.isToday ? 'today' : ''
+                }`}
                 onClick={() => handleDateSelect(day.date)}
               >
                 {day.dayNumber}

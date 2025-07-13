@@ -1,14 +1,14 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "noUnusedLocals": false,
-        "noUnusedParameters": false
-    },
-    "include": [
-        "src/**/*.test.ts",
-        "src/**/*.test.tsx",
-        "src/**/*.spec.ts",
-        "src/**/*.spec.tsx"
-    ],
-    "exclude": []
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
+  ],
+  "exclude": []
 }

@@ -52,7 +52,9 @@ function JournalPage() {
     const dateString = newDate.toISOString().split('T')[0];
     if (dateString) {
       urlSearchParams.set('date', dateString);
-      const newUrl = `${window.location.pathname || '/'}?${urlSearchParams.toString()}`;
+      const newUrl = `${
+        window.location.pathname || '/'
+      }?${urlSearchParams.toString()}`;
       window.history.replaceState({}, '', newUrl);
     }
   };

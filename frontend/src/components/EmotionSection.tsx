@@ -138,7 +138,9 @@ const EmotionSection: React.FC<EmotionSectionProps> = ({
         {(emotions || []).map(emotion => (
           <button
             key={emotion}
-            className={`emotion-button ${selectedEmotion === emotion ? 'selected' : ''}`}
+            className={`emotion-button ${
+              selectedEmotion === emotion ? 'selected' : ''
+            }`}
             style={{
               backgroundColor:
                 selectedEmotion === emotion
