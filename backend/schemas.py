@@ -25,7 +25,7 @@ class Emotion(str, Enum):
     CATASTROPHIC_THINKING = "catastrophic thinking"
 
 
-class UserCreate(BaseModel):  # type: ignore[misc]
+class UserCreate(BaseModel):
     """Schema for creating a new user."""
 
     firebase_uid: str
@@ -36,7 +36,7 @@ class UserCreate(BaseModel):  # type: ignore[misc]
     preferences: Dict[str, Any] = {}
 
 
-class UserResponse(BaseModel):  # type: ignore[misc]
+class UserResponse(BaseModel):
     """Schema for user response data."""
 
     id: int
@@ -55,7 +55,7 @@ class UserResponse(BaseModel):  # type: ignore[misc]
         from_attributes = True
 
 
-class UserUpdate(BaseModel):  # type: ignore[misc]
+class UserUpdate(BaseModel):
     """Schema for updating user data."""
 
     name: Optional[str] = None
@@ -64,7 +64,7 @@ class UserUpdate(BaseModel):  # type: ignore[misc]
     preferences: Optional[Dict[str, Any]] = None
 
 
-class JournalEntryCreate(BaseModel):  # type: ignore[misc]
+class JournalEntryCreate(BaseModel):
     """Schema for creating a new journal entry."""
 
     gratitude_answers: List[str] = []
@@ -74,7 +74,7 @@ class JournalEntryCreate(BaseModel):  # type: ignore[misc]
     visual_settings: Optional[Dict[str, Any]] = None
 
 
-class JournalEntryResponse(BaseModel):  # type: ignore[misc]
+class JournalEntryResponse(BaseModel):
     """Schema for journal entry response data."""
 
     id: int
@@ -94,21 +94,21 @@ class JournalEntryResponse(BaseModel):  # type: ignore[misc]
         from_attributes = True
 
 
-class EmotionQuestionResponse(BaseModel):  # type: ignore[misc]
+class EmotionQuestionResponse(BaseModel):
     """Schema for emotion question response data."""
 
     id: int
     question: str
 
 
-class QuoteResponse(BaseModel):  # type: ignore[misc]
+class QuoteResponse(BaseModel):
     """Schema for quote response data."""
 
     quote: str
     author: str
 
 
-class PaginationMetadata(BaseModel):  # type: ignore[misc]
+class PaginationMetadata(BaseModel):
     """Schema for pagination metadata."""
 
     current_page: int
@@ -119,7 +119,7 @@ class PaginationMetadata(BaseModel):  # type: ignore[misc]
     has_previous: bool
 
 
-class PaginatedJournalEntriesResponse(BaseModel):  # type: ignore[misc]
+class PaginatedJournalEntriesResponse(BaseModel):
     """Schema for paginated journal entries response."""
 
     entries: List[JournalEntryResponse]

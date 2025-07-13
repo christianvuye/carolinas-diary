@@ -70,7 +70,7 @@ def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> Any:
 
 
 # Initialize database with questions and quotes
-@app.on_event("startup")  # type: ignore[misc]
+@app.on_event("startup")
 async def startup_event() -> None:
     """Initialize database with questions and quotes on startup."""
     db = SessionLocal()
@@ -111,7 +111,7 @@ async def startup_event() -> None:
         db.close()
 
 
-@app.get("/")  # type: ignore[misc]
+@app.get("/")
 async def root() -> dict[str, str]:
     """
     Root endpoint returning a welcome message.
@@ -120,7 +120,7 @@ async def root() -> dict[str, str]:
 
 
 # User management endpoints
-@app.post("/users/register", response_model=UserResponse)  # type: ignore[misc]
+@app.post("/users/register", response_model=UserResponse)
 async def register_user(
     user_data: dict[str, Any] = Depends(get_current_user_dev),
     db: Session = Depends(get_db),
@@ -148,7 +148,7 @@ async def register_user(
     return new_user
 
 
-@app.get("/users/me", response_model=UserResponse)  # type: ignore[misc]
+@app.get("/users/me", response_model=UserResponse)
 async def get_current_user_info(
     user_data: dict[str, Any] = Depends(get_current_user_dev),
     db: Session = Depends(get_db),
@@ -163,7 +163,7 @@ async def get_current_user_info(
     return user
 
 
-@app.put("/users/me", response_model=UserResponse)  # type: ignore[misc]
+@app.put("/users/me", response_model=UserResponse)
 async def update_current_user(
     user_update: UserUpdate,
     user_data: dict[str, Any] = Depends(get_current_user_dev),
@@ -192,7 +192,7 @@ async def update_current_user(
     return user
 
 
-@app.get("/gratitude-questions")  # type: ignore[misc]
+@app.get("/gratitude-questions")
 async def get_gratitude_questions(db: Session = Depends(get_db)) -> list[str]:
     """Get 5 random gratitude questions for today"""
     questions = db.query(GratitudeQuestion).all()
@@ -201,7 +201,7 @@ async def get_gratitude_questions(db: Session = Depends(get_db)) -> list[str]:
     return [q.question for q in random.sample(questions, 5)]
 
 
-@app.get("/emotion-questions/{emotion}")  # type: ignore[misc]
+@app.get("/emotion-questions/{emotion}")
 async def get_emotion_questions(
     emotion: Emotion, db: Session = Depends(get_db)
 ) -> list[EmotionQuestionResponse]:
@@ -212,7 +212,7 @@ async def get_emotion_questions(
     return [EmotionQuestionResponse(id=q.id, question=q.question) for q in questions]
 
 
-@app.get("/quote/{emotion}")  # type: ignore[misc]
+@app.get("/quote/{emotion}")
 async def get_quote_for_emotion(
     emotion: Emotion, db: Session = Depends(get_db)
 ) -> dict[str, str]:
@@ -227,7 +227,7 @@ async def get_quote_for_emotion(
 #  Move business logic to service layer for better architecture. Create a JournalEntryService class, then use it in the route handler.
 
 
-@app.post("/journal-entry", response_model=JournalEntryResponse)  # type: ignore[misc]
+@app.post("/journal-entry", response_model=JournalEntryResponse)
 async def create_journal_entry(
     entry: JournalEntryCreate,
     user_data: dict[str, Any] = Depends(get_current_user),
@@ -274,7 +274,7 @@ async def create_journal_entry(
         return db_entry
 
 
-@app.get("/journal-entry/{entry_date}", response_model=JournalEntryResponse)  # type: ignore[misc]
+@app.get("/journal-entry/{entry_date}", response_model=JournalEntryResponse)
 async def get_journal_entry(
     entry_date: str,
     user_data: dict[str, Any] = Depends(get_current_user),
@@ -309,7 +309,7 @@ async def get_journal_entry(
 
 
 # consider extracting the pagination logic to a service layer for reusability (a reusable pagination service)
-@app.get("/journal-entries", response_model=PaginatedJournalEntriesResponse)  # type: ignore[misc]
+@app.get("/journal-entries", response_model=PaginatedJournalEntriesResponse)
 async def get_all_journal_entries(
     page: int = 1,
     page_size: int = 10,
@@ -364,7 +364,7 @@ async def get_all_journal_entries(
     )
 
 
-@app.get("/emotions")  # type: ignore[misc]
+@app.get("/emotions")
 async def get_available_emotions() -> list[str]:
     """Get list of available emotions"""
     return [emotion.value for emotion in Emotion]
