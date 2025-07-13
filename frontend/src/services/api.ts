@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { auth } from '../firebase/config';
+
 import { logger } from './logger';
 
 const API_BASE_URL =

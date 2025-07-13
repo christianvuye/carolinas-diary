@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { db } from '../firebase/config';
+
 import { logger } from './logger';
 
 export interface JournalEntryFirestore {

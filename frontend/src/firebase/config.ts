@@ -9,7 +9,7 @@ function getRequiredEnvVar(name: string): string {
   if (!value) {
     throw new Error(
       `Missing required Firebase environment variable: ${name}\n` +
-      'Please check your .env file and ensure all Firebase configuration variables are set.'
+        'Please check your .env file and ensure all Firebase configuration variables are set.'
     );
   }
   return value;

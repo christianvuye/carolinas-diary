@@ -137,6 +137,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -155,14 +157,25 @@ jobs:
 
       - name: Run ESLint security rules
         working-directory: ./frontend
-        run: npm run lint -- --ext .ts,.tsx,.js,.jsx --format=json --output-file eslint-results.json
+        run: |
+          npm run lint -- --ext .ts,.tsx,.js,.jsx --format=json --output-file eslint-results.json
+          # Generate a readable summary for the report
+          echo "ESLint Summary:" > eslint-summary.txt
+          if [ -f eslint-results.json ]; then
+            npm run lint -- --ext .ts,.tsx,.js,.jsx >> eslint-summary.txt 2>&1 || true
+            echo "ESLint report generated successfully" >> eslint-summary.txt
+          else
+            echo "No ESLint results file generated" >> eslint-summary.txt
+          fi
         continue-on-error: true
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
         with:
           name: frontend-security-reports
-          path: frontend/eslint-results.json
+          path: |
+            frontend/eslint-results.json
+            frontend/eslint-summary.txt
           retention-days: 7
 
       - name: Scan for hardcoded secrets
