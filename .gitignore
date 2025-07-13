@@ -79,10 +79,6 @@ frontend/.env.production.local
 logs
 *.log
 
-# Testing artifacts
-*.pdf
-*.md
-
 # IDE and temporary files
 .tmp/
 .temp/
