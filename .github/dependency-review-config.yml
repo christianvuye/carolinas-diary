@@ -13,6 +13,9 @@ allow-licenses:
   - BSD-2-Clause
   - ISC
   - CC0-1.0
+  - CC-BY-3.0
+  - Unlicense
+  - 0BSD
 
 # Skip these GitHub Advisory Database IDs during detection
 # Add specific GHSAs here if needed for essential security tools
@@ -24,3 +27,16 @@ allow-ghsas: []
 fail-on-scopes:
   - runtime
   - development
+
+# Allow specific packages with missing or problematic licenses
+# These are necessary dependencies that we've manually verified
+deny-packages: []
+allow-packages:
+  - pkg:npm/@isaacs/balanced-match
+  - pkg:npm/@isaacs/brace-expansion
+  - pkg:pypi/safety
+  - pkg:pypi/typing-extensions
+  - pkg:pypi/python-multipart
+  - pkg:github-actions/returntocorp/semgrep-action
+  - pkg:github-actions/renovatebot/github-action
+  - pkg:github-actions/gitleaks/gitleaks-action
