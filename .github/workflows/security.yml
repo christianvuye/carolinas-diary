@@ -213,12 +213,11 @@ jobs:
         working-directory: ./frontend
         run: |
           npm ci
-          npm install -g license-checker
 
       - name: Check frontend licenses
         working-directory: ./frontend
         run: |
-          license-checker --onlyAllow 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;Apache-1.1;Apache-2.0 WITH LLVM-exception;0BSD;Unlicense;CC0-1.0' --excludePrivatePackages --summary
+          npm run license-check
 
       - name: Setup Python and check backend licenses
         uses: actions/setup-python@v5
