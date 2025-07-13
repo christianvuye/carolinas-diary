@@ -4,26 +4,27 @@ Database migration script for Carolina's Diary
 Converts single-user database to multi-user with Firebase authentication
 """
 
-import sqlite3
 import json
+import shutil
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+# flake8: noqa: E501
 
-def backup_database(db_path):
+
+def backup_database(db_path: Path) -> Path:
     """Create a backup of the current database"""
     backup_path = f"{db_path.stem}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
     backup_full_path = db_path.parent / backup_path
 
     # Copy the database file
-    import shutil
-
     shutil.copy2(db_path, backup_full_path)
     print(f"Database backed up to: {backup_full_path}")
     return backup_full_path
 
 
-def check_migration_needed(conn):
+def check_migration_needed(conn: sqlite3.Connection) -> bool:
     """Check if migration is needed"""
     cursor = conn.cursor()
 
@@ -39,7 +40,7 @@ def check_migration_needed(conn):
     return not (users_table_exists and has_user_id)
 
 
-def migrate_database(db_path):
+def migrate_database(db_path: Path) -> bool:
     """Main migration function"""
     db_path = Path(db_path)
 
@@ -137,7 +138,7 @@ def migrate_database(db_path):
             # Copy data from old table, assigning to default user
             cursor.execute(
                 """
-                INSERT INTO journal_entries_new 
+                INSERT INTO journal_entries_new
                 (id, user_id, date, gratitude_answers, emotion, emotion_answers, custom_text, visual_settings, created_at, updated_at)
                 SELECT id, ?, date, gratitude_answers, emotion, emotion_answers, custom_text, visual_settings, created_at, updated_at
                 FROM journal_entries
@@ -176,12 +177,9 @@ def migrate_database(db_path):
 
         return True
 
-    except Exception as e:
+    except (sqlite3.Error, OSError, ValueError) as e:
         print(f"Migration failed: {e}")
         print(f"Restoring from backup: {backup_path}")
-
-        # Restore from backup
-        import shutil
 
         shutil.copy2(backup_path, db_path)
 
@@ -191,7 +189,7 @@ def migrate_database(db_path):
         conn.close()
 
 
-def main():
+def main() -> None:
     """Main function"""
     db_path = Path(__file__).parent / "carolinas_diary.db"
     success = migrate_database(db_path)
@@ -200,8 +198,6 @@ def main():
         print("\n✅ Database migration completed successfully!")
     else:
         print("\n❌ Database migration failed!")
-
-    return success
 
 
 if __name__ == "__main__":

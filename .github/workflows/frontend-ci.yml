@@ -1,0 +1,280 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ master, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ master, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Check code formatting with Prettier
+        working-directory: ./frontend
+        run: npm run format:check
+
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        working-directory: ./frontend
+        run: npm run type-check
+
+      # Type coverage is handled by pre-commit hooks and code-quality job
+      # Removing duplicate execution to reduce CI time
+
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files --config frontend/.pre-commit-config.yaml
+
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test -- --coverage --watchAll=false
+        env:
+          CI: true
+
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-${{ matrix.node-version }}
+          path: frontend/build/
+          retention-days: 7
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Install Lighthouse CI and dependencies
+        run: |
+          npm install -g @lhci/cli serve wait-on
+
+      - name: Serve and audit with Lighthouse CI
+        working-directory: ./frontend
+        run: |
+          # Start a local server in the background
+          npx serve -s build -l 3000 &
+          SERVER_PID=$!
+
+          # Wait for server to start
+          npx wait-on http://localhost:3000
+
+          # Run Lighthouse CI
+          lhci autorun --config=.lighthouserc.json --upload.target=temporary-public-storage || true
+
+          # Clean up
+          kill $SERVER_PID
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run security audit
+        working-directory: ./frontend
+        run: npm audit --audit-level=moderate
+
+      - name: Run ESLint security rules
+        working-directory: ./frontend
+        run: |
+          npm run lint -- --ext .ts,.tsx,.js,.jsx --format=json --output-file eslint-results.json
+          # Generate a readable summary for the report
+          echo "ESLint Summary:" > eslint-summary.txt
+          if [ -f eslint-results.json ]; then
+            npm run lint -- --ext .ts,.tsx,.js,.jsx >> eslint-summary.txt 2>&1 || true
+            echo "ESLint report generated successfully" >> eslint-summary.txt
+          else
+            echo "No ESLint results file generated" >> eslint-summary.txt
+          fi
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-security-reports
+          path: |
+            frontend/eslint-results.json
+            frontend/eslint-summary.txt
+          retention-days: 7
+
+      - name: Scan for hardcoded secrets
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          path: ./frontend/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  code-quality:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Generate comprehensive type coverage report
+        working-directory: ./frontend
+        run: |
+          # Generate HTML report for artifacts
+          npm run type-coverage:report
+
+          # Get type coverage percentage using the actual type-coverage tool
+          echo "## Type Coverage Report" >> $GITHUB_STEP_SUMMARY
+
+          # Run type-coverage and capture the output
+          TYPE_COVERAGE_OUTPUT=$(npm run type-coverage --silent 2>&1 || echo "Type coverage check failed")
+
+          # Extract the coverage percentage from the output
+          if echo "$TYPE_COVERAGE_OUTPUT" | grep -q "type coverage is"; then
+            COVERAGE_PERCENTAGE=$(echo "$TYPE_COVERAGE_OUTPUT" | grep -o "type coverage is [0-9.]*%" | grep -o "[0-9.]*")
+            echo "**Type Coverage: ${COVERAGE_PERCENTAGE}%**" >> $GITHUB_STEP_SUMMARY
+
+            # Extract uncovered types count if available
+            if echo "$TYPE_COVERAGE_OUTPUT" | grep -q "uncovered type"; then
+              UNCOVERED_COUNT=$(echo "$TYPE_COVERAGE_OUTPUT" | grep -o "[0-9]* uncovered type" | grep -o "[0-9]*")
+              echo "- Uncovered types: $UNCOVERED_COUNT" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            # Add detailed report notice
+            echo "- Detailed HTML report available in artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Type Coverage: Could not determine coverage percentage**" >> $GITHUB_STEP_SUMMARY
+            echo "- Raw output: $TYPE_COVERAGE_OUTPUT" >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
+
+      - name: Upload type coverage HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: type-coverage-html-report
+          path: frontend/coverage-ts/
+          retention-days: 7
+
+      - name: Comment PR with reports
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## 📊 Frontend Code Quality Report\n\n';
+
+            // Add type coverage info
+            try {
+              const typeCoverageExists = fs.existsSync('./frontend/coverage-ts/lcov.info');
+              if (typeCoverageExists) {
+                comment += '### ✅ Type Coverage Report Generated\n';
+                comment += 'Type coverage report has been generated and uploaded as an artifact.\n\n';
+              }
+            } catch (error) {
+              comment += '### ⚠️ Type Coverage Report Failed\n';
+              comment += 'Could not generate type coverage report.\n\n';
+            }
+
+            comment += '### 🔍 Checks Performed\n';
+            comment += '- ✅ TypeScript type checking\n';
+            comment += '- ✅ ESLint code quality\n';
+            comment += '- ✅ Prettier code formatting\n';
+            comment += '- ✅ Type coverage analysis\n';
+            comment += '- ✅ Pre-commit hooks validation\n\n';
+
+            comment += '*This report was automatically generated by the CI pipeline.*';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

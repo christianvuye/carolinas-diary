@@ -39,22 +39,26 @@ A beautiful, personalized journaling web application designed specifically for C
 ### Backend Setup
 
 1. Navigate to the backend directory:
+
 ```bash
 cd backend
 ```
 
 2. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 4. Run the backend server:
+
 ```bash
 python main.py
 ```
@@ -64,16 +68,19 @@ The backend will start on `http://localhost:8000`
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
+
 ```bash
 cd frontend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm start
 ```
@@ -93,6 +100,7 @@ The frontend will start on `http://localhost:3000`
 ## Database
 
 The app uses SQLite to store:
+
 - Journal entries with dates
 - Gratitude and emotion answers
 - Visual customization settings

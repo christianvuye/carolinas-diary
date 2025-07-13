@@ -32,6 +32,33 @@ venv.bak/
 *.db
 *.sqlite3
 
+# Coverage reports
+.coverage
+*/.coverage
+coverage.xml
+*/coverage.xml
+htmlcov/
+*/htmlcov/
+
+# Test output files
+test_output.txt
+*/test_output.txt
+junit.xml
+*/junit.xml
+
+# Security reports (contain sensitive local paths)
+backend/safety-report*.json
+backend/safety-report*.txt
+backend/bandit-report*.json
+safety-report*.json
+safety-report*.txt
+bandit-report*.json
+
+# MyPy reports (generated artifacts)
+mypy-reports/
+backend/mypy-reports/
+**/mypy-reports/
+
 # Node.js
 node_modules/
 npm-debug.log*

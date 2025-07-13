@@ -1,13 +1,14 @@
-import React from 'react';
 import { WifiOff, Wifi } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import { useOnlineStatus } from '../hooks/usePWA';
 import './OfflineIndicator.css';
 
 const OfflineIndicator: React.FC = () => {
   const isOnline = useOnlineStatus();
-  const [showIndicator, setShowIndicator] = React.useState(false);
+  const [showIndicator, setShowIndicator] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOnline) {
       setShowIndicator(true);
     } else {
@@ -17,6 +18,7 @@ const OfflineIndicator: React.FC = () => {
         return () => clearTimeout(timer);
       }
     }
+    return undefined;
   }, [isOnline, showIndicator]);
 
   if (!showIndicator) {
@@ -34,7 +36,7 @@ const OfflineIndicator: React.FC = () => {
         ) : (
           <>
             <WifiOff size={16} />
-            <span>You're offline. Your entries are saved locally.</span>
+            <span>You&apos;re offline. Your entries are saved locally.</span>
           </>
         )}
       </div>

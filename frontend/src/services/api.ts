@@ -1,7 +1,11 @@
 import axios from 'axios';
+
 import { auth } from '../firebase/config';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+import { logger } from './logger';
+
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
 // Create axios instance
 const api = axios.create({
@@ -13,7 +17,7 @@ const api = axios.create({
 
 // Request interceptor to add authentication token
 api.interceptors.request.use(
-  async (config) => {
+  async config => {
     const currentUser = auth.currentUser;
     if (currentUser) {
       const token = await currentUser.getIdToken();
@@ -21,18 +25,18 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      console.error('Unauthorized access - redirecting to login');
+      logger.error('Unauthorized access - redirecting to login');
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -60,6 +64,10 @@ export interface JournalEntryCreate {
   visual_settings?: VisualSettings | null;
 }
 
+export interface UserPreferences {
+  [key: string]: unknown;
+}
+
 export interface User {
   id: number;
   firebase_uid: string;
@@ -67,7 +75,7 @@ export interface User {
   name: string | null;
   picture: string | null;
   email_verified: boolean;
-  preferences: any;
+  preferences: UserPreferences;
   created_at: string;
   updated_at: string;
 }
@@ -113,7 +121,9 @@ export const apiService = {
   },
 
   // Journal endpoints
-  createJournalEntry: async (entry: JournalEntryCreate): Promise<JournalEntry> => {
+  createJournalEntry: async (
+    entry: JournalEntryCreate
+  ): Promise<JournalEntry> => {
     const response = await api.post('/journal-entry', entry);
     return response.data;
   },
@@ -154,7 +164,9 @@ export const apiService = {
     return response.data;
   },
 
-  saveJournalEntry: async (entry: JournalEntryCreate & { date?: string }): Promise<JournalEntry> => {
+  saveJournalEntry: async (
+    entry: JournalEntryCreate & { date?: string }
+  ): Promise<JournalEntry> => {
     const response = await api.post('/journal-entry', entry);
     return response.data;
   },

@@ -3,18 +3,21 @@
 ## Testing Plan with Your Girlfriend
 
 ### Phase 1: Basic Functionality (Day 1)
+
 - [ ] **Both create accounts** using different emails
 - [ ] **Each person journals separately** for same date
 - [ ] **Verify data isolation**: Person A cannot see Person B's entries
 - [ ] **Test login/logout** and data persistence
 
 ### Phase 2: Edge Cases (Day 2)
+
 - [ ] **Simultaneous usage**: Both journaling at same time
 - [ ] **Session management**: What happens when token expires
 - [ ] **Data migration**: Are Carolina's existing entries properly assigned
 - [ ] **Mobile browser testing**: Auth flow on phones
 
 ### Phase 3: User Experience (Day 3-4)
+
 - [ ] **Onboarding flow**: Is signup intuitive?
 - [ ] **Performance**: Loading times with auth
 - [ ] **Error states**: Network issues, login failures
@@ -23,19 +26,23 @@
 ## Critical Test Scenarios
 
 ### Data Isolation Test
+
 - [ ] User A logs in → creates journal entry for today
-- [ ] User B logs in → creates journal entry for today  
+- [ ] User B logs in → creates journal entry for today
 - [ ] User A logs in → should only see their entry
 - [ ] User B logs in → should only see their entry
 
 ### Security Test
+
 - [ ] Test API without auth token (should return 401 Unauthorized)
+
 ```bash
-curl -X GET "your-api-url/journal-entries" 
+curl -X GET "your-api-url/journal-entries"
 # Should return 401 Unauthorized
 ```
 
 - [ ] Test API with valid token (should work)
+
 ```bash
 curl -X GET "your-api-url/journal-entries" \
 -H "Authorization: Bearer [token]"
@@ -44,6 +51,7 @@ curl -X GET "your-api-url/journal-entries" \
 ## Deployment Checklist
 
 ### Before Going Live
+
 - [ ] Firebase project configured for production domain
 - [ ] Environment variables set correctly
 - [ ] Database backup of existing data
@@ -52,6 +60,7 @@ curl -X GET "your-api-url/journal-entries" \
 - [ ] Error monitoring set up (Sentry/LogRocket)
 
 ### Production Environment Variables Setup
+
 - [ ] Backend environment variables configured:
   - [ ] `FIREBASE_PROJECT_ID=your-project-id`
   - [ ] `FIREBASE_PRIVATE_KEY=your-private-key`
@@ -65,34 +74,38 @@ curl -X GET "your-api-url/journal-entries" \
 ## Documentation During Testing
 
 ### User Feedback Log
+
 - [ ] **Onboarding friction**: Where does she get confused?
-  - Notes: ________________________________
+  - Notes: ******\*\*******\_\_\_\_******\*\*******
 - [ ] **Feature discovery**: Does she find all the features?
-  - Notes: ________________________________
+  - Notes: ******\*\*******\_\_\_\_******\*\*******
 - [ ] **Performance issues**: Any slow loading or bugs?
-  - Notes: ________________________________
+  - Notes: ******\*\*******\_\_\_\_******\*\*******
 - [ ] **Mobile experience**: How does it work on her phone?
-  - Notes: ________________________________
+  - Notes: ******\*\*******\_\_\_\_******\*\*******
 
 ### Technical Issues Log
+
 - [ ] **Auth failures**: Token expiration, network issues
-  - Issues found: ________________________________
+  - Issues found: ******\*\*******\_\_\_\_******\*\*******
 - [ ] **Data integrity**: Any missing or incorrect entries
-  - Issues found: ________________________________
+  - Issues found: ******\*\*******\_\_\_\_******\*\*******
 - [ ] **UI/UX problems**: Broken layouts, confusing flows
-  - Issues found: ________________________________
+  - Issues found: ******\*\*******\_\_\_\_******\*\*******
 - [ ] **Browser compatibility**: Test Chrome, Safari, mobile browsers
-  - Issues found: ________________________________
+  - Issues found: ******\*\*******\_\_\_\_******\*\*******
 
 ## Quick Win Optimizations
 
 ### If Testing Goes Well
+
 - [ ] **Add "Remember Me" functionality**
 - [ ] **Email verification for new accounts**
 - [ ] **Password reset flow**
 - [ ] **Basic user preferences** (theme, timezone)
 
 ### If Issues Found (Priority Order)
+
 - [ ] **Prioritize data integrity fixes first**
 - [ ] **Authentication flow improvements second**
 - [ ] **UI/UX polish last**
@@ -100,6 +113,7 @@ curl -X GET "your-api-url/journal-entries" \
 ## Launch Readiness Criteria
 
 ### Green Light Indicators ✅
+
 - [ ] Both users can journal independently without data mixing
 - [ ] Auth flow works on desktop and mobile
 - [ ] No data loss during login/logout cycles
@@ -107,6 +121,7 @@ curl -X GET "your-api-url/journal-entries" \
 - [ ] Your girlfriend would actually use this daily
 
 ### Red Flags to Fix First ❌
+
 - [ ] **BLOCKER**: Any data mixing between users
 - [ ] **BLOCKER**: Auth flow breaks or confuses users
 - [ ] **BLOCKER**: Significant performance degradation
@@ -126,6 +141,7 @@ curl -X GET "your-api-url/journal-entries" \
 ## Testing Notes Section
 
 ### Day 1 Notes:
+
 ```
 Date: ___________
 Testers: You & Carolina
@@ -138,6 +154,7 @@ Features that worked well:
 ```
 
 ### Day 2 Notes:
+
 ```
 Date: ___________
 Focus: Edge cases & mobile
@@ -150,6 +167,7 @@ Performance observations:
 ```
 
 ### Day 3-4 Notes:
+
 ```
 Date: ___________
 Focus: User experience
@@ -170,4 +188,4 @@ Reasoning:
 - [ ] **Performance is acceptable**
 - [ ] **Ready for public deployment**
 
-**Launch Date**: ___________
+**Launch Date**: \***\*\_\_\_\*\***

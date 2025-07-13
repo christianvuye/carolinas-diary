@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { pwaInstallPrompt } from '../utils/serviceWorkerRegistration';
 
 interface PWAState {
@@ -11,7 +12,7 @@ export const usePWA = () => {
   const [state, setState] = useState<PWAState>({
     isInstallable: false,
     isInstalled: false,
-    showInstallPrompt: false
+    showInstallPrompt: false,
   });
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export const usePWA = () => {
     setState({
       isInstallable: pwaInstallPrompt.isInstallable(),
       isInstalled: pwaInstallPrompt.isAppInstalled(),
-      showInstallPrompt: false
+      showInstallPrompt: false,
     });
 
     // Listen for install prompt availability
@@ -27,7 +28,7 @@ export const usePWA = () => {
       setState(prev => ({
         ...prev,
         isInstallable: true,
-        showInstallPrompt: true
+        showInstallPrompt: true,
       }));
     };
 
@@ -36,7 +37,7 @@ export const usePWA = () => {
         ...prev,
         isInstallable: false,
         showInstallPrompt: false,
-        isInstalled: true
+        isInstalled: true,
       }));
     };
 
@@ -44,7 +45,10 @@ export const usePWA = () => {
     window.addEventListener('pwa-install-hidden', handleInstallHidden);
 
     return () => {
-      window.removeEventListener('pwa-install-available', handleInstallAvailable);
+      window.removeEventListener(
+        'pwa-install-available',
+        handleInstallAvailable
+      );
       window.removeEventListener('pwa-install-hidden', handleInstallHidden);
     };
   }, []);
@@ -56,7 +60,7 @@ export const usePWA = () => {
         ...prev,
         isInstallable: false,
         showInstallPrompt: false,
-        isInstalled: true
+        isInstalled: true,
       }));
     }
     return success;
@@ -65,14 +69,14 @@ export const usePWA = () => {
   const dismissInstallPrompt = () => {
     setState(prev => ({
       ...prev,
-      showInstallPrompt: false
+      showInstallPrompt: false,
     }));
   };
 
   return {
     ...state,
     installApp,
-    dismissInstallPrompt
+    dismissInstallPrompt,
   };
 };
 
@@ -82,11 +86,12 @@ export const useIsStandalone = () => {
 
   useEffect(() => {
     const checkStandalone = () => {
-      const isStandaloneMode = 
+      const isStandaloneMode =
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true ||
+        (window.navigator as typeof window.navigator & { standalone?: boolean })
+          .standalone === true ||
         document.referrer.includes('android-app://');
-      
+
       setIsStandalone(isStandaloneMode);
     };
 

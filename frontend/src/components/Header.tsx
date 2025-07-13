@@ -1,7 +1,10 @@
-import React from 'react';
 import { Heart, LogOut, User, BookOpen, Edit3 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+
+import { useAuth } from '../context/AuthContext';
+import { logger } from '../services/logger';
+
 import './Header.css';
 
 const Header: React.FC = () => {
@@ -13,7 +16,7 @@ const Header: React.FC = () => {
     try {
       await logout();
     } catch (error) {
-      console.error('Failed to logout:', error);
+      logger.error('Failed to logout', { error });
     }
   };
 
@@ -22,20 +25,24 @@ const Header: React.FC = () => {
       <div className="header-content">
         <div className="header-title">
           <Heart className="heart-icon" />
-          <h1>Carolina's Diary</h1>
+          <h1>Carolina&apos;s Diary</h1>
         </div>
         <div className="header-right">
           {currentUser && (
             <nav className="header-nav">
-              <button 
-                className={`nav-btn ${location.pathname === '/' ? 'active' : ''}`}
+              <button
+                className={`nav-btn ${
+                  location.pathname === '/' ? 'active' : ''
+                }`}
                 onClick={() => navigate('/')}
               >
                 <Edit3 size={16} />
                 Write
               </button>
-              <button 
-                className={`nav-btn ${location.pathname === '/entries' ? 'active' : ''}`}
+              <button
+                className={`nav-btn ${
+                  location.pathname === '/entries' ? 'active' : ''
+                }`}
                 onClick={() => navigate('/entries')}
               >
                 <BookOpen size={16} />
@@ -44,11 +51,11 @@ const Header: React.FC = () => {
             </nav>
           )}
           <div className="header-date">
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            {new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
           </div>
           {currentUser && (

@@ -1,5 +1,9 @@
 .emotion-section {
-  background: linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(68, 160, 141, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(78, 205, 196, 0.1),
+    rgba(68, 160, 141, 0.1)
+  );
   padding: 2rem;
   border-radius: 15px;
   border: 2px solid rgba(78, 205, 196, 0.2);
@@ -151,22 +155,22 @@
   .emotion-section {
     padding: 1.5rem;
   }
-  
+
   .emotions-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.8rem;
   }
-  
+
   .emotion-button {
     padding: 0.6rem 1rem;
     font-size: 0.8rem;
   }
-  
+
   .quote-section {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .quote-icon {
     width: 1.5rem;
     height: 1.5rem;

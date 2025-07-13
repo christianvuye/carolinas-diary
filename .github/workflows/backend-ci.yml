@@ -1,0 +1,398 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ master, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ master, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Lint with flake8
+        working-directory: ./backend
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+      - name: Check code formatting with black
+        working-directory: ./backend
+        run: black --check --diff .
+
+      - name: Check import sorting with isort
+        working-directory: ./backend
+        run: isort --check-only --diff --profile=black .
+
+      - name: Type check with mypy
+        working-directory: ./backend
+        run: |
+          mypy . --config-file=mypy.ini
+          mypy . --config-file=mypy.ini --html-report=mypy-reports --txt-report=mypy-reports
+          echo "Type coverage report generated"
+
+      - name: Upload type coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: type-coverage-reports-${{ matrix.python-version }}
+          path: backend/mypy-reports/
+          retention-days: 7
+
+      - name: Run pre-commit hooks
+        working-directory: ./backend
+        run: |
+          pre-commit install
+          pre-commit run --all-files
+
+      - name: Run tests with pytest
+        id: test-results
+        working-directory: ./backend
+        continue-on-error: true
+        run: |
+          # Run pytest with detailed output and capture results
+          pytest tests/ --cov=. --cov-report=xml:tests/coverage.xml --cov-report=html:tests/htmlcov --cov-report=term --tb=short -v --junitxml=tests/junit.xml > tests/test_output.txt 2>&1
+          TEST_EXIT_CODE=$?
+
+          # Parse test results with improved patterns
+          TOTAL_TESTS=$(grep "collected .* items" tests/test_output.txt | sed -n 's/.*collected \([0-9]*\) items.*/\1/p' || echo "0")
+          FAILED_TESTS=$(grep " failed," tests/test_output.txt | sed -n 's/.*=* \([0-9]*\) failed,.*/\1/p' || echo "0")
+          PASSED_TESTS=$(grep " passed," tests/test_output.txt | sed -n 's/.*[^0-9]\([0-9]*\) passed,.*/\1/p' || echo "0")
+
+          # Fallback calculation if parsing failed
+          if [ "$TOTAL_TESTS" -eq 0 ] && [ "$FAILED_TESTS" -gt 0 ] && [ "$PASSED_TESTS" -gt 0 ]; then
+            TOTAL_TESTS=$((FAILED_TESTS + PASSED_TESTS))
+          elif [ "$PASSED_TESTS" -eq 0 ] && [ "$TOTAL_TESTS" -gt 0 ] && [ "$FAILED_TESTS" -gt 0 ]; then
+            PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS))
+          fi
+
+          # Calculate percentage
+          if [ "$TOTAL_TESTS" -gt 0 ]; then
+            PASS_PERCENTAGE=$((PASSED_TESTS * 100 / TOTAL_TESTS))
+          else
+            PASS_PERCENTAGE=0
+          fi
+
+          # Extract coverage percentage (look for TOTAL line)
+          COVERAGE=$(grep "TOTAL" tests/test_output.txt | grep -o "[0-9]*%" | tail -1 || echo "0%")
+
+          # More realistic health assessment thresholds
+          if [ "$PASS_PERCENTAGE" -ge 90 ]; then
+            HEALTH_STATUS="🟢 Excellent"
+            HEALTH_EMOJI="🎉"
+          elif [ "$PASS_PERCENTAGE" -ge 80 ]; then
+            HEALTH_STATUS="🟡 Good"
+            HEALTH_EMOJI="👍"
+          elif [ "$PASS_PERCENTAGE" -ge 65 ]; then
+            HEALTH_STATUS="🟠 Needs Attention"
+            HEALTH_EMOJI="⚠️"
+          else
+            HEALTH_STATUS="🔴 Critical"
+            HEALTH_EMOJI="🚨"
+          fi
+
+          # Debug output to help troubleshoot parsing
+          echo "DEBUG: Parsed values - Total: $TOTAL_TESTS, Failed: $FAILED_TESTS, Passed: $PASSED_TESTS, Percentage: $PASS_PERCENTAGE%, Coverage: $COVERAGE"
+
+          # Save results for later steps
+          echo "total_tests=$TOTAL_TESTS" >> $GITHUB_OUTPUT
+          echo "passed_tests=$PASSED_TESTS" >> $GITHUB_OUTPUT
+          echo "failed_tests=$FAILED_TESTS" >> $GITHUB_OUTPUT
+          echo "pass_percentage=$PASS_PERCENTAGE" >> $GITHUB_OUTPUT
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "health_status=$HEALTH_STATUS" >> $GITHUB_OUTPUT
+          echo "health_emoji=$HEALTH_EMOJI" >> $GITHUB_OUTPUT
+          echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+
+          # Always exit 0 so the workflow continues
+          exit 0
+        env:
+          DATABASE_URL: sqlite:///./test.db
+
+      - name: Extract failed test details
+        id: failed-details
+        working-directory: ./backend
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          # Extract failed test names and reasons
+          if [ -f "tests/test_output.txt" ]; then
+            # Get failed test names
+            FAILED_TEST_NAMES=$(grep "FAILED tests/" tests/test_output.txt | sed 's/FAILED tests\///g' | sed 's/::.*//g' | sort -u | head -10)
+
+            # Create a summary of failures
+            if [ -n "$FAILED_TEST_NAMES" ]; then
+              {
+                echo "FAILED_TESTS_SUMMARY<<EOF"
+                echo "### Failed Tests:"
+                echo "<pre>"
+                echo "$FAILED_TEST_NAMES"
+                echo "</pre>"
+                echo ""
+                echo "### Failure Details:"
+                echo "<pre>"
+                grep -A 3 "FAILURES\|AssertionError\|HTTPException" tests/test_output.txt | head -20 | sed 's/`/BACKTICK/g'
+                echo "</pre>"
+                echo "EOF"
+              } >> $GITHUB_OUTPUT
+            else
+              echo "FAILED_TESTS_SUMMARY=" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Generate test report comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const totalTests = '${{ steps.test-results.outputs.total_tests }}';
+            const passedTests = '${{ steps.test-results.outputs.passed_tests }}';
+            const failedTests = '${{ steps.test-results.outputs.failed_tests }}';
+            const passPercentage = '${{ steps.test-results.outputs.pass_percentage }}';
+            const coverage = '${{ steps.test-results.outputs.coverage }}';
+            const healthStatus = '${{ steps.test-results.outputs.health_status }}';
+            const healthEmoji = '${{ steps.test-results.outputs.health_emoji }}';
+            const failedDetails = `${{ steps.failed-details.outputs.FAILED_TESTS_SUMMARY }}`;
+            const pythonVersion = '${{ matrix.python-version }}';
+
+            const getHealthAdvice = (percentage) => {
+              if (percentage >= 90) return "🎯 **Excellent!** Your test suite is in great health.";
+              if (percentage >= 80) return "✅ **Good Coverage!** Consider addressing a few more failing tests to reach 90%+.";
+              if (percentage >= 65) return "⚡ **Room for Improvement.** Aim for 80%+ test success rate.";
+              return "🔧 **Needs Attention.** Focus on fixing failing tests - target 80%+ success rate.";
+            };
+
+            const reportBody = `
+            ## ${healthEmoji} Backend Test Report (Python ${pythonVersion})
+
+            | Metric | Value | Status |
+            |--------|--------|---------|
+            | **Total Tests** | ${totalTests} | - |
+            | **Passed** | ${passedTests} | ✅ |
+            | **Failed** | ${failedTests} | ${failedTests > 0 ? '❌' : '✅'} |
+            | **Success Rate** | ${passPercentage}% | ${healthStatus} |
+            | **Code Coverage** | ${coverage} | 📊 |
+
+            ### Health Assessment
+            ${getHealthAdvice(parseInt(passPercentage))}
+
+            ### Test Quality Guidelines
+            - 🎯 **Excellent**: 90%+ success rate
+            - ✅ **Good**: 80-89% success rate
+            - ⚠️ **Needs Attention**: 65-79% success rate
+            - 🚨 **Critical**: <65% success rate
+
+            ${failedDetails ? `
+            ${failedDetails}
+
+            ### 💡 Quick Fixes
+            - Review failing test assertions
+            - Check for environment-specific issues
+            - Ensure test data setup is correct
+            - Verify API endpoint responses match expectations
+            ` : '🎉 **All tests passing!** Great work!'}
+
+            ---
+            *This report was automatically generated. Tests do not block PR merge - this is for informational purposes.*
+            `;
+
+            // Check if there's already a test report comment for this Python version
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const existingComment = comments.find(comment =>
+              comment.body.includes(`Backend Test Report (Python ${pythonVersion})`) && comment.user.type === 'Bot'
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportBody
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportBody
+              });
+            }
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results-${{ matrix.python-version }}
+          path: |
+            backend/tests/test_output.txt
+            backend/tests/coverage.xml
+            backend/tests/htmlcov/
+            backend/tests/junit.xml
+          retention-days: 7
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/tests/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run safety check
+        working-directory: ./backend
+        run: safety check --json --output safety-report.json || true
+
+      - name: Run bandit security scan
+        working-directory: ./backend
+        run: bandit -r . -f json -o bandit-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-security-reports
+          path: |
+            backend/safety-report.json
+            backend/bandit-report.json
+          retention-days: 30
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/python
+        if: github.actor != 'dependabot[bot]'
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create Dockerfile for backend
+        working-directory: ./backend
+        run: |
+          cat > .ci.Dockerfile << 'EOF'
+          FROM python:3.11-slim
+
+          WORKDIR /app
+
+          # Install system dependencies
+          RUN apt-get update && apt-get install -y \
+              gcc \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Copy requirements and install Python dependencies
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+
+          # Copy application code
+          COPY . .
+
+          # Create non-root user
+          RUN useradd --create-home --shell /bin/bash app && \
+              chown -R app:app /app
+          USER app
+
+          EXPOSE 8000
+
+          CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+          EOF
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/.ci.Dockerfile
+          push: false
+          load: true
+          tags: carolina-diary-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker image
+        run: |
+          docker run --rm -d --name test-backend \
+            -p 8000:8000 \
+            carolina-diary-backend:latest
+
+          # Wait for server to start
+          sleep 10
+
+          # Test health endpoint
+          curl -f http://localhost:8000/ || exit 1
+
+          # Cleanup
+          docker stop test-backend

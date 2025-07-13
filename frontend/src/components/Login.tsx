@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+
+import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 const Login: React.FC = () => {
@@ -13,7 +14,7 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
@@ -25,8 +26,8 @@ const Login: React.FC = () => {
     try {
       await login(email, password);
       navigate('/');
-    } catch (error: any) {
-      setError(error.message || 'Failed to log in');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to log in');
     } finally {
       setLoading(false);
     }
@@ -39,8 +40,10 @@ const Login: React.FC = () => {
     try {
       await loginWithGoogle();
       navigate('/');
-    } catch (error: any) {
-      setError(error.message || 'Failed to log in with Google');
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to log in with Google'
+      );
     } finally {
       setLoading(false);
     }
@@ -49,11 +52,11 @@ const Login: React.FC = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>Welcome Back to Carolina's Diary</h2>
+        <h2>Welcome Back to Carolina&apos;s Diary</h2>
         <p>Sign in to continue your journaling journey</p>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -61,43 +64,43 @@ const Login: React.FC = () => {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               placeholder="Enter your email"
               disabled={loading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               placeholder="Enter your password"
               disabled={loading}
             />
           </div>
-          
+
           <button type="submit" disabled={loading} className="login-button">
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
-        
+
         <div className="divider">
           <span>or</span>
         </div>
-        
-        <button 
-          onClick={handleGoogleLogin} 
+
+        <button
+          onClick={handleGoogleLogin}
           disabled={loading}
           className="google-login-button"
         >
           Continue with Google
         </button>
-        
+
         <p className="auth-link">
-          Don't have an account? <Link to="/register">Sign up</Link>
+          Don&apos;t have an account? <Link to="/register">Sign up</Link>
         </p>
       </div>
     </div>

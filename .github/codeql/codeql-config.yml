@@ -1,0 +1,22 @@
+name: "CodeQL Configuration"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+paths-ignore:
+  - "frontend/node_modules/**"
+  - "frontend/build/**"
+  - "backend/venv/**"
+  - "**/*.test.js"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/test/**"
+  - "**/tests/**"
+  - "**/__tests__/**"
+
+paths:
+  - "frontend/src/**"
+  - "backend/**"

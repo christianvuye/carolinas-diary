@@ -1,0 +1,243 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          ignoreLabels: |
+            bot
+            ignore-semantic-pull-request
+
+      - name: Check for breaking changes
+        run: |
+          if git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -i "breaking\|BREAKING"; then
+            echo "::warning::This PR contains breaking changes. Please ensure proper versioning and documentation."
+          fi
+
+      - name: Validate branch naming
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          if [[ ! $BRANCH_NAME =~ ^(feature|fix|hotfix|release|chore|docs|refactor|test|perf)/.+ ]]; then
+            echo "::error::Branch name '$BRANCH_NAME' does not follow the naming convention."
+            echo "Expected format: type/description (e.g., feature/user-authentication)"
+            exit 1
+          fi
+
+      - name: Check commit messages
+        run: |
+          # Check commit message subjects (first line only)
+          # Note: This validates subject lines for length and capitalization
+          git log --format=%s ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | while IFS= read -r line; do
+            if [[ ${#line} -gt 72 ]]; then
+              echo "::warning::Commit message subject too long (>72 chars): $line"
+            fi
+            if [[ ! $line =~ ^[A-Z] ]]; then
+              echo "::warning::Commit message subject should start with capital letter: $line"
+            fi
+          done
+
+      - name: Check for large files
+        run: |
+          # Find files larger than 10MB
+          find . -type f -size +10M -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./backend/venv/*" | while read file; do
+            echo "::warning::Large file detected: $file ($(du -h "$file" | cut -f1))"
+          done
+
+      - name: Check for sensitive files
+        run: |
+          # Check for common sensitive file patterns
+          SENSITIVE_PATTERNS=(
+            "*.pem"
+            "*.key"
+            "*.p12"
+            "*.pfx"
+            "*.env"
+            "*.env.local"
+            "*.env.production"
+            "id_rsa*"
+            "id_dsa*"
+            "*.sql"
+            "*.dump"
+          )
+
+          for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+            if find . -name "$pattern" -not -path "./.git/*" -not -path "./node_modules/*" | grep -q .; then
+              echo "::error::Potentially sensitive files found matching pattern: $pattern"
+              find . -name "$pattern" -not -path "./.git/*" -not -path "./node_modules/*"
+              exit 1
+            fi
+          done
+
+      - name: Check dependencies changed
+        id: deps-changed
+        run: |
+          if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -E "(package\.json|requirements\.txt|Pipfile|yarn\.lock|package-lock\.json)"; then
+            echo "dependencies_changed=true" >> $GITHUB_OUTPUT
+            echo "::notice::Dependencies have been modified in this PR"
+          else
+            echo "dependencies_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate PR summary
+        if: github.event.action == 'opened'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # Precompute git command outputs to prevent command injection
+          FILES_CHANGED="$(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})"
+          FILES_COUNT="$(git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | wc -l)"
+          COMMITS_COUNT="$(git rev-list --count ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})"
+          COMMITS="$(git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})"
+
+          cat > pr_summary.md <<EOF
+          ## PR Summary
+
+          **Branch**: \`$HEAD_REF\` → \`$BASE_REF\`
+          **Files changed**: $FILES_COUNT
+          **Commits**: $COMMITS_COUNT
+          **Dependencies changed**: ${{ steps.deps-changed.outputs.dependencies_changed }}
+
+          ### Changed Files
+          \`\`\`
+          $FILES_CHANGED
+          \`\`\`
+
+          ### Commit History
+          $COMMITS
+
+          ---
+          *This summary was automatically generated by GitHub Actions*
+          EOF
+
+      - name: Comment PR summary
+        if: github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('pr_summary.md', 'utf8');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  size-analysis:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Create install script
+        run: |
+          echo '#!/bin/bash' > install.sh
+          echo 'cd frontend && npm ci' >> install.sh
+          chmod +x install.sh
+
+      - name: Create temporary package.json for build
+        run: |
+          echo '{
+            "name": "temp-build",
+            "version": "1.0.0",
+            "scripts": {
+              "build-frontend": "cd frontend && npm run build"
+            }
+          }' > package.json
+
+      - name: Analyze bundle size
+        uses: preactjs/compressed-size-action@v2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          pattern: "./frontend/build/static/**/*.{js,css}"
+          exclude: "{**/*.map}"
+          strip-hash: "\\.(\\w{8})\\."
+          install-script: "./install.sh"
+          build-script: "build-frontend"
+
+  accessibility:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Run accessibility tests
+        run: |
+          npx @axe-core/cli --dir ./frontend/build --save axe-results.json
+
+      - name: Upload accessibility results
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-results
+          path: axe-results.json
+          retention-days: 7
