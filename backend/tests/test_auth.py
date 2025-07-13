@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+from typing import Any, Dict
 from unittest.mock import Mock, patch
 
 import pytest
@@ -62,7 +63,7 @@ class TestFirebaseAuth:
         class MockExpiredIdTokenError(Exception):
             """Mock exception for expired Firebase ID tokens."""
 
-            def __init__(self, message, cause=None):
+            def __init__(self, message: str, cause: Any = None) -> None:
                 super().__init__(message)
                 self.cause = cause
 
@@ -105,7 +106,7 @@ class TestAuthenticationHelpers:
         """Test the get_current_user dependency function."""
 
         # Mock the firebase_auth instance
-        async def mock_get_current_user(_auth_credentials):
+        async def mock_get_current_user(_auth_credentials: Any) -> Dict[str, str]:
             return {
                 "uid": "test-uid",
                 "email": "test@example.com",
@@ -155,7 +156,7 @@ class TestAuthenticationMocking:
         auth = FirebaseAuth()
         assert auth.development_mode is False
 
-    def test_mock_user_data_structure(self, mock_firebase_user: Mock) -> None:
+    def test_mock_user_data_structure(self, mock_firebase_user: Dict[str, Any]) -> None:
         """Test that mock user data has the correct structure."""
         assert "uid" in mock_firebase_user
         assert "email" in mock_firebase_user

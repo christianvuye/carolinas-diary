@@ -1,9 +1,11 @@
 """Tests for SQLAlchemy database models."""
 
 from datetime import date
+from typing import Any, Dict
 
 import pytest
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from models import EmotionQuestion, GratitudeQuestion, JournalEntry, Quote, User
 
@@ -12,7 +14,7 @@ from models import EmotionQuestion, GratitudeQuestion, JournalEntry, Quote, User
 class TestUserModel:
     """Test the User model functionality."""
 
-    def test_create_user(self, db_session):
+    def test_create_user(self, db_session: Session) -> None:
         """Test creating a new user."""
         user = User(
             firebase_uid="test-uid-123",
@@ -34,7 +36,7 @@ class TestUserModel:
         assert user.created_at is not None
         assert user.updated_at is not None
 
-    def test_user_unique_constraints(self, db_session):
+    def test_user_unique_constraints(self, db_session: Session) -> None:
         """Test that user constraints are enforced."""
         # Create first user
         user1 = User(
@@ -54,7 +56,7 @@ class TestUserModel:
         with pytest.raises(IntegrityError):
             db_session.commit()
 
-    def test_user_relationships(self, db_session):
+    def test_user_relationships(self, db_session: Session) -> None:
         """Test user relationships with journal entries."""
         user = User(
             firebase_uid="test-uid-123", email="test@example.com", name="Test User"
@@ -81,7 +83,9 @@ class TestUserModel:
 class TestJournalEntryModel:
     """Test the JournalEntry model functionality."""
 
-    def test_create_journal_entry(self, db_session, sample_user_data):
+    def test_create_journal_entry(
+        self, db_session: Session, sample_user_data: Dict[str, Any]
+    ) -> None:
         """Test creating a new journal entry."""
         # Create user first
         user = User(
@@ -120,7 +124,9 @@ class TestJournalEntryModel:
         assert entry.visual_settings["theme"] == "sunny"
         assert entry.created_at is not None
 
-    def test_journal_entry_user_relationship(self, db_session, sample_user_data):
+    def test_journal_entry_user_relationship(
+        self, db_session: Session, sample_user_data: Dict[str, Any]
+    ) -> None:
         """Test journal entry relationship with user."""
         # Create user
         user = User(
@@ -146,7 +152,9 @@ class TestJournalEntryModel:
         assert entry.user.email == sample_user_data["email"]
         assert entry.user.name == sample_user_data["name"]
 
-    def test_journal_entry_optional_fields(self, db_session, sample_user_data):
+    def test_journal_entry_optional_fields(
+        self, db_session: Session, sample_user_data: Dict[str, Any]
+    ) -> None:
         """Test journal entry with optional fields."""
         # Create user
         user = User(
@@ -175,7 +183,7 @@ class TestJournalEntryModel:
 class TestGratitudeQuestionModel:
     """Test the GratitudeQuestion model functionality."""
 
-    def test_create_gratitude_question(self, db_session):
+    def test_create_gratitude_question(self, db_session: Session) -> None:
         """Test creating a gratitude question."""
         question = GratitudeQuestion(question="What made you smile today?")
 
@@ -185,7 +193,7 @@ class TestGratitudeQuestionModel:
         assert question.id is not None
         assert question.question == "What made you smile today?"
 
-    def test_gratitude_question_unique_constraint(self, db_session):
+    def test_gratitude_question_unique_constraint(self, db_session: Session) -> None:
         """Test that gratitude questions must be unique."""
         question1 = GratitudeQuestion(question="What made you smile today?")
         db_session.add(question1)
@@ -202,7 +210,7 @@ class TestGratitudeQuestionModel:
 class TestEmotionQuestionModel:
     """Test the EmotionQuestion model functionality."""
 
-    def test_create_emotion_question(self, db_session):
+    def test_create_emotion_question(self, db_session: Session) -> None:
         """Test creating an emotion question."""
         question = EmotionQuestion(
             emotion="joy", question="What brought you joy today?"
@@ -215,7 +223,7 @@ class TestEmotionQuestionModel:
         assert question.emotion == "joy"
         assert question.question == "What brought you joy today?"
 
-    def test_multiple_questions_same_emotion(self, db_session):
+    def test_multiple_questions_same_emotion(self, db_session: Session) -> None:
         """Test multiple questions for the same emotion."""
         question1 = EmotionQuestion(
             emotion="joy", question="What brought you joy today?"
@@ -243,7 +251,7 @@ class TestEmotionQuestionModel:
 class TestQuoteModel:
     """Test the Quote model functionality."""
 
-    def test_create_quote(self, db_session):
+    def test_create_quote(self, db_session: Session) -> None:
         """Test creating a quote."""
         quote = Quote(
             emotion="inspiration",
@@ -259,7 +267,7 @@ class TestQuoteModel:
         assert "great work" in quote.quote
         assert quote.author == "Steve Jobs"
 
-    def test_multiple_quotes_same_emotion(self, db_session):
+    def test_multiple_quotes_same_emotion(self, db_session: Session) -> None:
         """Test multiple quotes for the same emotion."""
         quote1 = Quote(
             emotion="motivation",
@@ -290,7 +298,7 @@ class TestQuoteModel:
 class TestModelIntegration:
     """Test integration between different models."""
 
-    def test_complete_user_journey(self, db_session):
+    def test_complete_user_journey(self, db_session: Session) -> None:
         """Test a complete user journey with all models."""
         # Create user
         user = User(

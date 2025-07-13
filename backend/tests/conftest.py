@@ -17,7 +17,7 @@ from main import app, get_db
 
 
 @pytest.fixture(scope="function")
-def temp_db():
+def temp_db() -> Generator[Any, None, None]:
     """Create a temporary SQLite database for each test."""
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
     os.close(db_fd)
@@ -36,7 +36,7 @@ def temp_db():
 
 
 @pytest.fixture
-def db_session(temp_db) -> Generator[Session, None, None]:  # noqa: F811
+def db_session(temp_db: Any) -> Generator[Session, None, None]:  # noqa: F811
     """Create a database session for testing."""
     testing_session_local = sessionmaker(
         autocommit=False, autoflush=False, bind=temp_db
@@ -62,7 +62,7 @@ def mock_firebase_user() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def mock_auth_dev_mode():
+def mock_auth_dev_mode() -> Generator[Any, None, None]:
     """Mock authentication in development mode."""
     with patch("main.get_current_user_dev") as mock_get_user_dev:
         mock_get_user_dev.return_value = {
@@ -75,7 +75,9 @@ def mock_auth_dev_mode():
 
 
 @pytest.fixture
-def mock_firebase_auth(mock_firebase_user):
+def mock_firebase_auth(
+    mock_firebase_user: Dict[str, Any],
+) -> Generator[Any, None, None]:
     """Mock Firebase authentication for testing."""
     with patch("auth.auth.verify_id_token") as mock_verify:
         mock_verify.return_value = mock_firebase_user
@@ -83,10 +85,12 @@ def mock_firebase_auth(mock_firebase_user):
 
 
 @pytest.fixture
-def client(db_session, mock_auth_dev_mode) -> Generator[TestClient, None, None]:
+def client(
+    db_session: Session, mock_auth_dev_mode: Any
+) -> Generator[TestClient, None, None]:
     """Create a test client with database override."""
 
-    def override_get_db():
+    def override_get_db() -> Generator[Session, None, None]:
         try:
             yield db_session
         finally:
@@ -103,7 +107,7 @@ def client(db_session, mock_auth_dev_mode) -> Generator[TestClient, None, None]:
 
 @pytest.fixture
 def authenticated_client(
-    client, mock_firebase_user
+    client: TestClient, mock_firebase_user: Dict[str, Any]
 ) -> Generator[TestClient, None, None]:
     """Create an authenticated test client."""
     # Already authenticated via mock_auth_dev_mode
