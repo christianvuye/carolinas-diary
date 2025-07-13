@@ -40,6 +40,12 @@ coverage.xml
 htmlcov/
 */htmlcov/
 
+# Test output files
+test_output.txt
+*/test_output.txt
+junit.xml
+*/junit.xml
+
 # Security reports (contain sensitive local paths)
 backend/safety-report*.json
 backend/safety-report*.txt

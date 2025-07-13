@@ -87,12 +87,12 @@ jobs:
         continue-on-error: true
         run: |
           # Run pytest with detailed output and capture results
-          pytest tests/ --cov=. --cov-report=xml:tests/coverage.xml --cov-report=html:tests/htmlcov --cov-report=term --tb=short -v --junitxml=tests/junit.xml > test_output.txt 2>&1
+          pytest tests/ --cov=. --cov-report=xml:tests/coverage.xml --cov-report=html:tests/htmlcov --cov-report=term --tb=short -v --junitxml=tests/junit.xml > tests/test_output.txt 2>&1
           TEST_EXIT_CODE=$?
 
           # Parse test results
-          TOTAL_TESTS=$(grep -o "collected [0-9]* items" test_output.txt | grep -o "[0-9]*" || echo "0")
-          FAILED_TESTS=$(grep -o "[0-9]* failed" test_output.txt | grep -o "^[0-9]*" || echo "0")
+          TOTAL_TESTS=$(grep -o "collected [0-9]* items" tests/test_output.txt | grep -o "[0-9]*" || echo "0")
+          FAILED_TESTS=$(grep -o "[0-9]* failed" tests/test_output.txt | grep -o "^[0-9]*" || echo "0")
           PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS))
 
           # Calculate percentage
@@ -103,7 +103,7 @@ jobs:
           fi
 
           # Extract coverage percentage
-          COVERAGE=$(grep -o "TOTAL.*[0-9]*%" test_output.txt | grep -o "[0-9]*%" | tail -1 || echo "0%")
+          COVERAGE=$(grep -o "TOTAL.*[0-9]*%" tests/test_output.txt | grep -o "[0-9]*%" | tail -1 || echo "0%")
 
           # Health assessment
           if [ "$PASS_PERCENTAGE" -ge 95 ]; then
@@ -142,25 +142,23 @@ jobs:
         continue-on-error: true
         run: |
           # Extract failed test names and reasons
-          if [ -f "test_output.txt" ]; then
+          if [ -f "tests/test_output.txt" ]; then
             # Get failed test names
-            FAILED_TEST_NAMES=$(grep "FAILED tests/" test_output.txt | sed 's/FAILED tests\///g' | sed 's/::.*//g' | sort -u | head -10)
+            FAILED_TEST_NAMES=$(grep "FAILED tests/" tests/test_output.txt | sed 's/FAILED tests\///g' | sed 's/::.*//g' | sort -u | head -10)
 
             # Create a summary of failures
             if [ -n "$FAILED_TEST_NAMES" ]; then
-              echo "FAILED_TESTS_SUMMARY<<EOF" >> $GITHUB_OUTPUT
-              echo "### Failed Tests:" >> $GITHUB_OUTPUT
-              echo '```' >> $GITHUB_OUTPUT
-              echo "$FAILED_TEST_NAMES" >> $GITHUB_OUTPUT
-              echo '```' >> $GITHUB_OUTPUT
-
-              # Get failure reasons (first few lines of each failure)
-              echo "" >> $GITHUB_OUTPUT
-              echo "### Failure Details:" >> $GITHUB_OUTPUT
-              grep -A 3 "FAILURES\|AssertionError\|HTTPException" test_output.txt | head -20 | while read line; do
-                echo "$line" >> $GITHUB_OUTPUT
-              done
-              echo "EOF" >> $GITHUB_OUTPUT
+              {
+                echo "FAILED_TESTS_SUMMARY<<EOF"
+                echo "### Failed Tests:"
+                echo "\`\`\`"
+                echo "$FAILED_TEST_NAMES"
+                echo "\`\`\`"
+                echo ""
+                echo "### Failure Details:"
+                grep -A 3 "FAILURES\|AssertionError\|HTTPException" tests/test_output.txt | head -20 | sed 's/`/\\`/g'
+                echo "EOF"
+              } >> $GITHUB_OUTPUT
             else
               echo "FAILED_TESTS_SUMMARY=" >> $GITHUB_OUTPUT
             fi
@@ -257,7 +255,7 @@ jobs:
         with:
           name: backend-test-results-${{ matrix.python-version }}
           path: |
-            backend/test_output.txt
+            backend/tests/test_output.txt
             backend/tests/coverage.xml
             backend/tests/htmlcov/
             backend/tests/junit.xml
