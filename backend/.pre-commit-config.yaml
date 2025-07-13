@@ -4,24 +4,33 @@ repos:
     hooks:
       - id: trailing-whitespace
         files: ^backend/
+        exclude: ^backend/venv/
       - id: end-of-file-fixer
         files: ^backend/
+        exclude: ^backend/venv/
       - id: check-yaml
         files: ^backend/
+        exclude: ^backend/venv/
       - id: check-added-large-files
       - id: check-json
         files: ^backend/
+        exclude: ^backend/venv/
       - id: check-toml
         files: ^backend/
+        exclude: ^backend/venv/
       - id: check-xml
         files: ^backend/
+        exclude: ^backend/venv/
       - id: debug-statements
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
       - id: check-builtin-literals
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
       - id: check-case-conflict
       - id: check-docstring-first
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
       - id: check-merge-conflict
       - id: check-executables-have-shebangs
 
@@ -31,6 +40,7 @@ repos:
       - id: black
         language_version: python3
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
@@ -39,6 +49,7 @@ repos:
         args:
           - --profile=black
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
@@ -48,12 +59,14 @@ repos:
           - --max-line-length=88
           - --extend-ignore=E203,W503
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.7.1
     hooks:
       - id: mypy
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
         additional_dependencies:
           - types-requests
           - types-python-dateutil
@@ -82,6 +95,7 @@ repos:
           - --severity-level=medium
           - --exclude=tests/
         files: ^backend/.*\.py$
+        exclude: ^backend/venv/
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
     rev: v1.3.2
