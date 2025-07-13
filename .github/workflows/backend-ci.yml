@@ -79,14 +79,14 @@ jobs:
       - name: Run tests with pytest
         working-directory: ./backend
         run: |
-          pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term
+          pytest tests/ --cov=. --cov-report=xml:tests/coverage.xml --cov-report=html:tests/htmlcov --cov-report=term
         env:
           DATABASE_URL: sqlite:///./test.db
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: ./backend/coverage.xml
+          file: ./backend/tests/coverage.xml
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
