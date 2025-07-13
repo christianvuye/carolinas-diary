@@ -49,10 +49,12 @@ function JournalPage() {
     setCurrentDate(newDate);
     // Update URL parameter
     const urlSearchParams = new URLSearchParams(window.location.search || '');
-    const dateString = newDate.toISOString().split('T')[0]!;
-    urlSearchParams.set('date', dateString);
-    const newUrl = `${window.location.pathname || '/'}?${urlSearchParams.toString()}`;
-    window.history.replaceState({}, '', newUrl);
+    const dateString = newDate.toISOString().split('T')[0];
+    if (dateString) {
+      urlSearchParams.set('date', dateString);
+      const newUrl = `${window.location.pathname || '/'}?${urlSearchParams.toString()}`;
+      window.history.replaceState({}, '', newUrl);
+    }
   };
 
   return (

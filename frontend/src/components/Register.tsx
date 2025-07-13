@@ -38,8 +38,10 @@ const Register: React.FC = () => {
     try {
       await register(email, password, name);
       navigate('/');
-    } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to create account'
+      );
     } finally {
       setLoading(false);
     }
@@ -52,8 +54,10 @@ const Register: React.FC = () => {
     try {
       await loginWithGoogle();
       navigate('/');
-    } catch (error: any) {
-      setError(error.message || 'Failed to sign up with Google');
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to sign up with Google'
+      );
     } finally {
       setLoading(false);
     }

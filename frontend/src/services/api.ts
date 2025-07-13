@@ -64,6 +64,10 @@ export interface JournalEntryCreate {
   visual_settings?: VisualSettings | null;
 }
 
+export interface UserPreferences {
+  [key: string]: unknown;
+}
+
 export interface User {
   id: number;
   firebase_uid: string;
@@ -71,7 +75,7 @@ export interface User {
   name: string | null;
   picture: string | null;
   email_verified: boolean;
-  preferences: any;
+  preferences: UserPreferences;
   created_at: string;
   updated_at: string;
 }

@@ -88,7 +88,8 @@ export const useIsStandalone = () => {
     const checkStandalone = () => {
       const isStandaloneMode =
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone === true ||
+        (window.navigator as typeof window.navigator & { standalone?: boolean })
+          .standalone === true ||
         document.referrer.includes('android-app://');
 
       setIsStandalone(isStandaloneMode);

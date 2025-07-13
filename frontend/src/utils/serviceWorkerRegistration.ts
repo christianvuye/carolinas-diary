@@ -17,7 +17,10 @@ type Config = {
 
 export function register(config?: Config) {
   if ('serviceWorker' in navigator) {
-    const publicUrl = new URL(process.env.PUBLIC_URL!, window.location.href);
+    const publicUrl = new URL(
+      process.env.PUBLIC_URL || '',
+      window.location.href
+    );
     if (publicUrl.origin !== window.location.origin) {
       return;
     }
@@ -111,7 +114,7 @@ export function unregister() {
 
 // PWA Install Prompt Handler
 export class PWAInstallPrompt {
-  private deferredPrompt: any = null;
+  private deferredPrompt: unknown = null;
   private isInstalled = false;
 
   constructor() {
@@ -135,7 +138,8 @@ export class PWAInstallPrompt {
     // Check if already installed
     if (
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true
+      (window.navigator as typeof window.navigator & { standalone?: boolean })
+        .standalone === true
     ) {
       this.isInstalled = true;
     }
@@ -147,8 +151,12 @@ export class PWAInstallPrompt {
       return false;
     }
 
-    this.deferredPrompt.prompt();
-    const result = await this.deferredPrompt.userChoice;
+    const promptEvent = this.deferredPrompt as {
+      prompt(): Promise<void>;
+      userChoice: Promise<{ outcome: string; platform: string }>;
+    };
+    promptEvent.prompt();
+    const result = await promptEvent.userChoice;
     logger.info('PWA: User choice', { result });
 
     this.deferredPrompt = null;

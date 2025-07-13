@@ -11,11 +11,13 @@ export enum LogLevel {
   ERROR = 'error',
 }
 
+type LogContext = Record<string, unknown>;
+
 interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
-  context?: Record<string, any>;
+  context?: LogContext;
   userId?: string;
 }
 
@@ -34,7 +36,7 @@ class Logger {
   private createLogEntry(
     level: LogLevel,
     message: string,
-    context?: Record<string, any>
+    context?: LogContext
   ): LogEntry {
     const logEntry: LogEntry = {
       level,
@@ -48,7 +50,7 @@ class Logger {
     return logEntry;
   }
 
-  private log(level: LogLevel, message: string, context?: Record<string, any>) {
+  private log(level: LogLevel, message: string, context?: LogContext) {
     const logEntry = this.createLogEntry(level, message, context);
 
     // In development, use console methods
@@ -82,19 +84,19 @@ class Logger {
     }
   }
 
-  debug(message: string, context?: Record<string, any>) {
+  debug(message: string, context?: LogContext) {
     this.log(LogLevel.DEBUG, message, context);
   }
 
-  info(message: string, context?: Record<string, any>) {
+  info(message: string, context?: LogContext) {
     this.log(LogLevel.INFO, message, context);
   }
 
-  warn(message: string, context?: Record<string, any>) {
+  warn(message: string, context?: LogContext) {
     this.log(LogLevel.WARN, message, context);
   }
 
-  error(message: string, context?: Record<string, any>) {
+  error(message: string, context?: LogContext) {
     this.log(LogLevel.ERROR, message, context);
   }
 }

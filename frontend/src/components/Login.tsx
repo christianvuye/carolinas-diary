@@ -26,8 +26,8 @@ const Login: React.FC = () => {
     try {
       await login(email, password);
       navigate('/');
-    } catch (error: any) {
-      setError(error.message || 'Failed to log in');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to log in');
     } finally {
       setLoading(false);
     }
@@ -40,8 +40,10 @@ const Login: React.FC = () => {
     try {
       await loginWithGoogle();
       navigate('/');
-    } catch (error: any) {
-      setError(error.message || 'Failed to log in with Google');
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Failed to log in with Google'
+      );
     } finally {
       setLoading(false);
     }
