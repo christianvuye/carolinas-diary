@@ -151,12 +151,14 @@ jobs:
               {
                 echo "FAILED_TESTS_SUMMARY<<EOF"
                 echo "### Failed Tests:"
-                echo "\`\`\`"
+                echo "<pre>"
                 echo "$FAILED_TEST_NAMES"
-                echo "\`\`\`"
+                echo "</pre>"
                 echo ""
                 echo "### Failure Details:"
-                grep -A 3 "FAILURES\|AssertionError\|HTTPException" tests/test_output.txt | head -20 | sed 's/`/\\`/g'
+                echo "<pre>"
+                grep -A 3 "FAILURES\|AssertionError\|HTTPException" tests/test_output.txt | head -20 | sed 's/`/BACKTICK/g'
+                echo "</pre>"
                 echo "EOF"
               } >> $GITHUB_OUTPUT
             else
