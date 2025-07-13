@@ -188,11 +188,15 @@ jobs:
           echo 'cd frontend && npm ci' >> install.sh
           chmod +x install.sh
 
-      - name: Create build script
+      - name: Create temporary package.json for build
         run: |
-          echo '#!/bin/bash' > build.sh
-          echo 'cd frontend && npm run build' >> build.sh
-          chmod +x build.sh
+          echo '{
+            "name": "temp-build",
+            "version": "1.0.0",
+            "scripts": {
+              "build-frontend": "cd frontend && npm run build"
+            }
+          }' > package.json
 
       - name: Analyze bundle size
         uses: preactjs/compressed-size-action@v2
@@ -202,7 +206,7 @@ jobs:
           exclude: "{**/*.map}"
           strip-hash: "\\.(\\w{8})\\."
           install-script: "./install.sh"
-          build-script: "./build.sh"
+          build-script: "build-frontend"
 
   accessibility:
     runs-on: ubuntu-latest
