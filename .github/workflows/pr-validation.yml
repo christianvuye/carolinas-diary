@@ -189,6 +189,8 @@ jobs:
           pattern: "./frontend/build/static/**/*.{js,css}"
           exclude: "{**/*.map}"
           strip-hash: "\\.(\\w{8})\\."
+          install-script: "cd frontend && npm ci"
+          build-script: "cd frontend && npm run build"
 
   accessibility:
     runs-on: ubuntu-latest
