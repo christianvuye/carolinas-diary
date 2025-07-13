@@ -26,19 +26,19 @@ jest.mock('firebase/app', () => ({
 
 // Mock Firebase Auth functions
 /**
-* Mocks Firebase authentication methods for testing purposes.
-* @example
-* const auth = getAuth();
-* auth.signInWithEmailAndPassword('email', 'password');
-* // Mocked authentication process returns void.
-* @param {void} - No arguments are required.
-* @returns {object} A mock Firebase auth object.
-* @description
-*   - The function creates jest mock functions for all Firebase auth methods.
-*   - Useful for testing components that rely on Firebase authentication without making actual API calls.
-*   - It returns an object that mimics the structure and methods of Firebase authentication.
-*   - Designed to be compatible with `@testing-library/jest-dom` and Jest environment setups.
-*/
+ * Mocks Firebase authentication methods for testing purposes.
+ * @example
+ * const auth = getAuth();
+ * auth.signInWithEmailAndPassword('email', 'password');
+ * // Mocked authentication process returns void.
+ * @param {void} - No arguments are required.
+ * @returns {object} A mock Firebase auth object.
+ * @description
+ *   - The function creates jest mock functions for all Firebase auth methods.
+ *   - Useful for testing components that rely on Firebase authentication without making actual API calls.
+ *   - It returns an object that mimics the structure and methods of Firebase authentication.
+ *   - Designed to be compatible with `@testing-library/jest-dom` and Jest environment setups.
+ */
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(() => ({
     currentUser: null,
