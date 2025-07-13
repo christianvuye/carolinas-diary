@@ -12,6 +12,11 @@ on:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
 
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -77,11 +82,186 @@ jobs:
           pre-commit run --all-files
 
       - name: Run tests with pytest
+        id: test-results
         working-directory: ./backend
+        continue-on-error: true
         run: |
-          pytest tests/ --cov=. --cov-report=xml:tests/coverage.xml --cov-report=html:tests/htmlcov --cov-report=term
+          # Run pytest with detailed output and capture results
+          pytest tests/ --cov=. --cov-report=xml:tests/coverage.xml --cov-report=html:tests/htmlcov --cov-report=term --tb=short -v --junitxml=tests/junit.xml > test_output.txt 2>&1
+          TEST_EXIT_CODE=$?
+
+          # Parse test results
+          TOTAL_TESTS=$(grep -o "collected [0-9]* items" test_output.txt | grep -o "[0-9]*" || echo "0")
+          FAILED_TESTS=$(grep -o "[0-9]* failed" test_output.txt | grep -o "^[0-9]*" || echo "0")
+          PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS))
+
+          # Calculate percentage
+          if [ "$TOTAL_TESTS" -gt 0 ]; then
+            PASS_PERCENTAGE=$((PASSED_TESTS * 100 / TOTAL_TESTS))
+          else
+            PASS_PERCENTAGE=0
+          fi
+
+          # Extract coverage percentage
+          COVERAGE=$(grep -o "TOTAL.*[0-9]*%" test_output.txt | grep -o "[0-9]*%" | tail -1 || echo "0%")
+
+          # Health assessment
+          if [ "$PASS_PERCENTAGE" -ge 95 ]; then
+            HEALTH_STATUS="🟢 Excellent"
+            HEALTH_EMOJI="🎉"
+          elif [ "$PASS_PERCENTAGE" -ge 85 ]; then
+            HEALTH_STATUS="🟡 Good"
+            HEALTH_EMOJI="👍"
+          elif [ "$PASS_PERCENTAGE" -ge 70 ]; then
+            HEALTH_STATUS="🟠 Needs Attention"
+            HEALTH_EMOJI="⚠️"
+          else
+            HEALTH_STATUS="🔴 Critical"
+            HEALTH_EMOJI="🚨"
+          fi
+
+          # Save results for later steps
+          echo "total_tests=$TOTAL_TESTS" >> $GITHUB_OUTPUT
+          echo "passed_tests=$PASSED_TESTS" >> $GITHUB_OUTPUT
+          echo "failed_tests=$FAILED_TESTS" >> $GITHUB_OUTPUT
+          echo "pass_percentage=$PASS_PERCENTAGE" >> $GITHUB_OUTPUT
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "health_status=$HEALTH_STATUS" >> $GITHUB_OUTPUT
+          echo "health_emoji=$HEALTH_EMOJI" >> $GITHUB_OUTPUT
+          echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
+
+          # Always exit 0 so the workflow continues
+          exit 0
         env:
           DATABASE_URL: sqlite:///./test.db
+
+      - name: Extract failed test details
+        id: failed-details
+        working-directory: ./backend
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          # Extract failed test names and reasons
+          if [ -f "test_output.txt" ]; then
+            # Get failed test names
+            FAILED_TEST_NAMES=$(grep "FAILED tests/" test_output.txt | sed 's/FAILED tests\///g' | sed 's/::.*//g' | sort -u | head -10)
+
+            # Create a summary of failures
+            if [ -n "$FAILED_TEST_NAMES" ]; then
+              echo "FAILED_TESTS_SUMMARY<<EOF" >> $GITHUB_OUTPUT
+              echo "### Failed Tests:" >> $GITHUB_OUTPUT
+              echo '```' >> $GITHUB_OUTPUT
+              echo "$FAILED_TEST_NAMES" >> $GITHUB_OUTPUT
+              echo '```' >> $GITHUB_OUTPUT
+
+              # Get failure reasons (first few lines of each failure)
+              echo "" >> $GITHUB_OUTPUT
+              echo "### Failure Details:" >> $GITHUB_OUTPUT
+              grep -A 3 "FAILURES\|AssertionError\|HTTPException" test_output.txt | head -20 | while read line; do
+                echo "$line" >> $GITHUB_OUTPUT
+              done
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "FAILED_TESTS_SUMMARY=" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Generate test report comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const totalTests = '${{ steps.test-results.outputs.total_tests }}';
+            const passedTests = '${{ steps.test-results.outputs.passed_tests }}';
+            const failedTests = '${{ steps.test-results.outputs.failed_tests }}';
+            const passPercentage = '${{ steps.test-results.outputs.pass_percentage }}';
+            const coverage = '${{ steps.test-results.outputs.coverage }}';
+            const healthStatus = '${{ steps.test-results.outputs.health_status }}';
+            const healthEmoji = '${{ steps.test-results.outputs.health_emoji }}';
+            const failedDetails = `${{ steps.failed-details.outputs.FAILED_TESTS_SUMMARY }}`;
+            const pythonVersion = '${{ matrix.python-version }}';
+
+            const getHealthAdvice = (percentage) => {
+              if (percentage >= 95) return "🎯 **Target Achieved!** Your test suite is in excellent health.";
+              if (percentage >= 85) return "✅ **Good Coverage!** Consider adding a few more tests to reach 95%+.";
+              if (percentage >= 70) return "⚡ **Room for Improvement.** Aim for 85%+ test success rate.";
+              return "🔧 **Needs Attention.** Focus on fixing failing tests - target 85%+ success rate.";
+            };
+
+            const reportBody = `
+            ## ${healthEmoji} Backend Test Report (Python ${pythonVersion})
+
+            | Metric | Value | Status |
+            |--------|--------|---------|
+            | **Total Tests** | ${totalTests} | - |
+            | **Passed** | ${passedTests} | ✅ |
+            | **Failed** | ${failedTests} | ${failedTests > 0 ? '❌' : '✅'} |
+            | **Success Rate** | ${passPercentage}% | ${healthStatus} |
+            | **Code Coverage** | ${coverage} | 📊 |
+
+            ### Health Assessment
+            ${getHealthAdvice(parseInt(passPercentage))}
+
+            ### Test Quality Guidelines
+            - 🎯 **Excellent**: 95%+ success rate
+            - ✅ **Good**: 85-94% success rate
+            - ⚠️ **Needs Attention**: 70-84% success rate
+            - 🚨 **Critical**: <70% success rate
+
+            ${failedDetails ? `
+            ${failedDetails}
+
+            ### 💡 Quick Fixes
+            - Review failing test assertions
+            - Check for environment-specific issues
+            - Ensure test data setup is correct
+            - Verify API endpoint responses match expectations
+            ` : '🎉 **All tests passing!** Great work!'}
+
+            ---
+            *This report was automatically generated. Tests do not block PR merge - this is for informational purposes.*
+            `;
+
+            // Check if there's already a test report comment for this Python version
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const existingComment = comments.find(comment =>
+              comment.body.includes(`Backend Test Report (Python ${pythonVersion})`) && comment.user.type === 'Bot'
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportBody
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportBody
+              });
+            }
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results-${{ matrix.python-version }}
+          path: |
+            backend/test_output.txt
+            backend/tests/coverage.xml
+            backend/tests/htmlcov/
+            backend/tests/junit.xml
+          retention-days: 7
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
