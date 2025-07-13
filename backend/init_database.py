@@ -6,9 +6,10 @@ Creates all tables and populates with initial data
 
 # flake8: noqa: E501
 
+from sqlalchemy.orm import sessionmaker
+
 from database import Base, engine
 from models import EmotionQuestion, GratitudeQuestion, Quote
-from sqlalchemy.orm import sessionmaker
 
 # Create database session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

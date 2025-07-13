@@ -6,11 +6,14 @@ from datetime import date, datetime
 from typing import Any, Generator
 
 import uvicorn
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import DatabaseError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from auth import get_current_user, get_current_user_dev
 from database import Base, SessionLocal, engine
 from emotion_data import EMOTION_QUESTIONS, GRATITUDE_QUESTIONS, QUOTES_DATA
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from models import EmotionQuestion, GratitudeQuestion, JournalEntry, Quote, User
 from schemas import (
     Emotion,
@@ -22,8 +25,6 @@ from schemas import (
     UserResponse,
     UserUpdate,
 )
-from sqlalchemy.exc import DatabaseError, SQLAlchemyError
-from sqlalchemy.orm import Session
 
 # flake8: noqa: E501
 
