@@ -377,6 +377,7 @@ jobs:
           context: ./backend
           file: ./backend/.ci.Dockerfile
           push: false
+          load: true
           tags: carolina-diary-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
