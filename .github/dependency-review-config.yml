@@ -12,6 +12,7 @@ allow-licenses:
   - BSD-3-Clause
   - BSD-2-Clause
   - ISC
+  - CC0-1.0
 
 # Skip these GitHub Advisory Database IDs during detection
 # Add specific GHSAs here if needed for essential security tools

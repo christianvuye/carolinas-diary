@@ -1,0 +1,33 @@
+{
+  "licenses": {
+    "spdx": [
+      "MIT",
+      "Apache-2.0",
+      "BSD-3-Clause",
+      "BSD-2-Clause",
+      "ISC",
+      "CC0-1.0",
+      "0BSD"
+    ]
+  },
+  "corrections": true,
+  "packages": {
+    "spdx-exceptions": "<=2.5.0",
+    "spdx-license-ids": "<=3.0.21",
+    "spdx-ranges": "<=2.1.1",
+    "thingies": "<=1.21.0",
+    "argparse": "<=2.0.1",
+    "axe-core": "<=4.10.3",
+    "caniuse-lite": "<=1.0.30001727",
+    "esprima": "<=1.2.2",
+    "fs-monkey": "<=1.0.6",
+    "jackspeak": "<=3.4.3",
+    "memfs": "<=3.5.3",
+    "npm-license-corrections": "<=1.9.0",
+    "package-json-from-dist": "<=1.0.1",
+    "path-scurry": "<=1.11.1",
+    "spdx-expression-validate": "<=2.0.0",
+    "spdx-osi": "<=3.0.0"
+  },
+  "ignore": []
+}
