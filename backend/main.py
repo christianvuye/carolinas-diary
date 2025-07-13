@@ -59,7 +59,7 @@ def get_db() -> Generator[Session, None, None]:
 
 
 # Helper function to get user from database
-def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> Any:
+def get_user_by_firebase_uid(db: Session, firebase_uid: str) -> User:
     """Get user by Firebase UID, create if doesn't exist"""
     user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
     if not user:
